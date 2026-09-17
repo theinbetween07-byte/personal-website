@@ -1,0 +1,1706 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>徐子涵 · 个人主页</title>
+  <meta name="description" content="徐子涵的个人主页 —— 关于我、经历、技能、项目与联系方式。" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    :root {
+      --bg: #f7f3ea;
+      --card: #fffdf8;
+      --ink: #2e3129;
+      --muted: #6e7264;
+      --accent: #5d8a6d;
+      --accent-soft: #e8f0e9;
+      --line: #e5ddd0;
+      --radius: 16px;
+      --shadow: 0 6px 24px rgba(46, 49, 41, .06);
+    }
+    body {
+      font-family: "Segoe UI", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .wrap {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 24px 20px 64px;
+    }
+
+    /* ---- 全屏背景视频 + 遮罩（固定在视口，整页覆盖） ---- */
+    .scene {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -2;
+    }
+    .scene-veil {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background: linear-gradient(180deg,
+        rgba(246, 247, 251, .26) 0%,
+        rgba(246, 247, 251, .16) 45%,
+        rgba(246, 247, 251, .34) 100%);
+    }
+
+    /* ---- 顶部导航：粘性 + 毛玻璃 ---- */
+    nav.top {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(255, 255, 255, .22);
+      backdrop-filter: blur(8px) saturate(1.15);
+      -webkit-backdrop-filter: blur(8px) saturate(1.15);
+      border-bottom: 1px solid rgba(255, 255, 255, .35);
+      transition: background .25s ease, box-shadow .25s ease;
+    }
+    nav.top.scrolled {
+      background: rgba(255, 255, 255, .45);
+      box-shadow: 0 4px 18px rgba(31, 36, 48, .05);
+    }
+    nav.top .wrap { padding: 14px 20px; }
+    nav.top .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    nav.top .brand {
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: .5px;
+    }
+    nav.top .brand span { color: var(--accent); }
+    nav.top ul {
+      list-style: none;
+      display: flex;
+      gap: 22px;
+      font-size: 15px;
+    }
+    nav.top ul a { color: var(--ink); }
+
+    /* ---- Hero ---- */
+    .hero {
+      background: rgba(255, 253, 248, .46);
+      backdrop-filter: blur(4px) saturate(1.05);
+      -webkit-backdrop-filter: blur(4px) saturate(1.05);
+      border: 1px solid rgba(255, 253, 248, .55);
+      border-radius: var(--radius);
+      padding: 48px 40px;
+      margin-top: 8px;
+      box-shadow: var(--shadow);
+    }
+    .hero h1 { font-size: 40px; line-height: 1.25; }
+    .hero .role {
+      color: var(--accent);
+      font-size: 20px;
+      margin-top: 10px;
+      font-weight: 600;
+    }
+    .hero p.tagline {
+      color: var(--muted);
+      margin-top: 16px;
+      max-width: 640px;
+      font-size: 16px;
+    }
+    .hero .meta {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .chip {
+      background: rgba(255, 253, 248, .85);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 13.5px;
+      color: var(--muted);
+    }
+
+    /* ---- 通用区块 ---- */
+    section { margin-top: 40px; }
+    h2.sec {
+      font-size: 24px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    h2.sec::before {
+      content: "";
+      width: 8px;
+      height: 22px;
+      background: var(--accent);
+      border-radius: 4px;
+    }
+    .card {
+      background: rgba(255, 253, 248, .62);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 253, 248, .55);
+      border-radius: var(--radius);
+      padding: 22px 24px;
+      box-shadow: var(--shadow);
+    }
+    .card + .card { margin-top: 14px; }
+
+    /* 技能 */
+    .skills { display: flex; flex-wrap: wrap; gap: 10px; }
+    .skill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    /* 经历时间线 */
+    .timeline { border-left: 2px solid var(--line); padding-left: 20px; }
+    .tl-item { position: relative; padding-bottom: 20px; }
+    .tl-item::before {
+      content: "";
+      position: absolute;
+      left: -27px;
+      top: 6px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 3px solid var(--card);
+      box-shadow: 0 0 0 2px var(--accent);
+    }
+    .tl-item .date { font-size: 13px; color: var(--muted); }
+    .tl-item h3 { font-size: 17px; margin: 2px 0 4px; }
+
+    /* 项目 */
+    .projects { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+    .proj h3 { font-size: 17px; margin-bottom: 6px; }
+    .proj p { color: var(--muted); font-size: 14.5px; }
+
+    /* 页脚 */
+    footer {
+      margin-top: 48px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+    }
+    footer .links { display: flex; justify-content: center; gap: 18px; margin-bottom: 8px; }
+
+    /* 兴趣爱好 */
+    .interest-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+    }
+    .interest {
+      background: rgba(255, 253, 248, .62);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 253, 248, .55);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      box-shadow: var(--shadow);
+    }
+    .interest h3 { font-size: 17px; margin-bottom: 6px; }
+    .interest p { color: var(--muted); font-size: 14px; margin: 0; }
+
+    /* ================= 数字分身聊天区 ================= */
+    .twin-card {
+      position: relative;
+      overflow: hidden;
+      background: rgba(255, 253, 248, .62);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 253, 248, .55);
+      border-radius: 28px;
+      padding: 22px 22px 18px;
+      box-shadow: var(--shadow);
+    }
+    /* 曲线装饰：两团柔和色晕，制造有机弧度 */
+    .twin-card::before,
+    .twin-card::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      filter: blur(30px);
+    }
+    .twin-card::before {
+      width: 220px; height: 220px; top: -96px; right: -64px;
+      background: radial-gradient(circle, rgba(93, 138, 109, .40), transparent 70%);
+    }
+    .twin-card::after {
+      width: 260px; height: 260px; bottom: -130px; left: -84px;
+      background: radial-gradient(circle, rgba(143, 184, 155, .36), transparent 70%);
+    }
+    .twin-top {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .twin-avatar {
+      width: 46px; height: 46px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      font-size: 18px; font-weight: 700; color: #fff;
+      border-radius: 50% 50% 50% 14px;  /* 曲线：左下收尖 */
+      background: linear-gradient(135deg, var(--accent), #8fb89b);
+      box-shadow: 0 6px 16px rgba(93, 138, 109, .30);
+    }
+    .twin-who {
+      display: flex; flex-direction: column;
+      line-height: 1.35; min-width: 0;
+    }
+    .twin-who strong { font-size: 15.5px; }
+    .twin-status {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12.5px; color: var(--muted);
+    }
+    .twin-status::before {
+      content: "";
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #67a97c;
+      box-shadow: 0 0 0 3px rgba(103, 169, 124, .16);
+    }
+    .lang-switch {
+      margin-left: auto;
+      flex: 0 0 auto;
+      display: flex;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 253, 248, .78);
+    }
+    .lang-btn {
+      font: inherit;
+      font-size: 12.5px; font-weight: 600;
+      color: var(--muted);
+      background: transparent;
+      border: 0;
+      padding: 5px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background .2s ease, color .2s ease;
+    }
+    .lang-btn.is-on { background: var(--accent); color: #fff; }
+
+    .chat {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      height: 320px;
+      padding: 16px 4px 8px;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+    }
+    .msg {
+      max-width: 82%;
+      padding: 10px 14px;
+      font-size: 14.5px;
+      line-height: 1.6;
+      word-break: break-word;
+      animation: msg-in .22s ease both;
+    }
+    @keyframes msg-in {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: none; }
+    }
+    .msg.bot {
+      align-self: flex-start;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px 18px 18px 6px;   /* 曲线：左下收尖 */
+      box-shadow: 0 3px 10px rgba(46, 49, 41, .05);
+    }
+    .msg.me {
+      align-self: flex-end;
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent), #8fb89b);
+      border-radius: 18px 18px 6px 18px;   /* 曲线：右下收尖 */
+      box-shadow: 0 6px 16px rgba(93, 138, 109, .26);
+    }
+    .msg.typing { display: flex; align-items: center; gap: 5px; padding: 13px 16px; }
+    .msg.typing i {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--muted);
+      animation: dot 1.1s infinite;
+    }
+    .msg.typing i:nth-child(2) { animation-delay: .18s; }
+    .msg.typing i:nth-child(3) { animation-delay: .36s; }
+    @keyframes dot {
+      0%, 60%, 100% { opacity: .25; transform: translateY(0); }
+      30%           { opacity: 1;   transform: translateY(-3px); }
+    }
+
+    .suggests { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 4px 12px; }
+    .suggest {
+      font: inherit;
+      font-size: 13px;
+      color: var(--ink);
+      background: rgba(255, 253, 248, .82);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 13px;
+      cursor: pointer;
+      transition: background .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
+    }
+    .suggest:hover {
+      color: var(--accent);
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .chat-form {
+      position: relative;
+      display: flex;
+      gap: 10px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+    .chat-form input {
+      flex: 1;
+      min-width: 0;
+      font: inherit;
+      font-size: 14.5px;
+      color: var(--ink);
+      background: rgba(255, 253, 248, .86);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 11px 18px;
+      outline: none;
+      transition: border-color .2s ease, box-shadow .2s ease;
+    }
+    .chat-form input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(93, 138, 109, .14);
+    }
+    .chat-form button {
+      flex: 0 0 auto;
+      font: inherit;
+      font-size: 14.5px; font-weight: 600;
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent), #8fb89b);
+      border: 0;
+      border-radius: 999px;
+      padding: 11px 22px;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(93, 138, 109, .26);
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .chat-form button:hover { transform: translateY(-1px); box-shadow: 0 9px 20px rgba(93, 138, 109, .34); }
+
+    .twin-note {
+      margin-top: 12px;
+      font-size: 12.5px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ================= 分享：入口卡片（内容在弹窗里） ================= */
+    .share-entry {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      cursor: pointer;
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .share-entry:hover { transform: translateY(-2px); }
+    .share-entry:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    .share-entry-main { flex: 1; min-width: 0; }
+    .share-entry-title { font-size: 17px; font-weight: 600; }
+    .share-entry-desc { font-size: 14px; color: var(--muted); margin-top: 4px; }
+    .share-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+    .share-chip {
+      font-size: 12px;
+      color: var(--muted);
+      background: rgba(255, 253, 248, .8);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 3px 11px;
+    }
+    .share-open {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent), #8fb89b);
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 22px;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(93, 138, 109, .30);
+      transition: transform .18s ease;
+    }
+    .share-open:hover { transform: translateY(-1px); }
+
+    /* ================= 分享：弹窗 ================= */
+    .modal { display: none; position: fixed; inset: 0; z-index: 100; }
+    .modal.is-open { display: block; }
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(24, 28, 38, .38);
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(6px);
+      animation: fadeIn .22s ease both;
+    }
+    .modal-wrap {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      overflow: auto;
+    }
+    .modal-panel {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      width: min(620px, 100%);
+      max-height: min(86vh, 760px);
+      background: rgba(255, 253, 248, .97);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      /* 曲线：左下收尖，和站点其他元素呼应 */
+      border-bottom-left-radius: 10px;
+      box-shadow: 0 30px 70px rgba(24, 28, 38, .28);
+      overflow: hidden;
+      animation: modalIn .28s cubic-bezier(.2, .8, .3, 1) both;
+    }
+    .modal-head {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 20px 24px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .modal-head h3 { flex: 1; font-size: 18px; }
+    .modal-close {
+      flex: 0 0 auto;
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      line-height: 1;
+      color: var(--muted);
+      background: rgba(46, 49, 41, .05);
+      border: 0;
+      /* 曲线：左下收尖 */
+      border-radius: 50% 50% 50% 10px;
+      cursor: pointer;
+      transition: background .18s ease, color .18s ease;
+    }
+    .modal-close:hover { background: var(--accent-soft); color: var(--accent); }
+    .modal-body { flex: 1 1 auto; padding: 20px 24px 24px; overflow-y: auto; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(14px) scale(.98); }
+      to { opacity: 1; transform: none; }
+    }
+
+    /* ================= 分享：音乐播放器 ================= */
+    .share-block + .share-block { margin-top: 24px; }
+    .share-sub {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+    .share-sub::before {
+      content: "";
+      width: 6px;
+      height: 16px;
+      border-radius: 3px;
+      background: var(--accent);
+    }
+
+    /* 在线收听：网易云官方外链播放器（官方授权嵌入，不用下载任何文件） */
+    .online-card {
+      margin-top: 14px;
+      padding: 14px 16px;
+      background: rgba(255, 253, 248, .86);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      box-shadow: 0 6px 18px rgba(46, 49, 41, .06);
+    }
+    .online-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+    .online-name { font-size: 14.5px; font-weight: 600; }
+    .online-by { font-size: 12.5px; color: var(--muted); }
+    .online-src {
+      margin-left: auto;
+      font-size: 11.5px;
+      color: var(--muted);
+      background: rgba(255, 253, 248, .85);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 3px 9px;
+    }
+    .online-note { font-size: 13px; color: var(--muted); line-height: 1.6; margin: 6px 0 10px; }
+    .online-player {
+      display: block;
+      width: 330px;
+      max-width: 100%;
+      height: 86px;
+      border: 0;
+      border-radius: 12px;
+      background: var(--card);
+    }
+
+    /* 其他推荐（预留位） */
+    .rec-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+    }
+    .rec {
+      padding: 16px 18px;
+      font-size: 13.5px;
+      color: var(--muted);
+      background: rgba(255, 253, 248, .45);
+      border: 1px dashed var(--line);
+      border-radius: 16px;
+    }
+    .rec h3 { font-size: 14.5px; color: var(--ink); margin-bottom: 4px; }
+
+    /* ================= Vibe Coding 日志 ================= */
+    .log-list { list-style: none; }
+    .log-item {
+      position: relative;
+      padding: 0 0 24px 30px;
+      border-left: 2px solid var(--line);
+    }
+    .log-item:last-child { padding-bottom: 0; border-left-color: transparent; }
+    .log-item::before {
+      content: "";
+      position: absolute;
+      left: -8px;
+      top: 3px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 3px solid var(--card);
+      box-shadow: 0 0 0 2px var(--accent);
+    }
+    .log-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .log-ver {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border-radius: 999px;
+      padding: 2px 10px;
+    }
+    .log-date { font-size: 12.5px; color: var(--muted); }
+    .log-title { font-size: 16px; margin: 7px 0 4px; }
+    .log-gain { font-size: 13.5px; color: var(--muted); }
+    .log-gain strong { color: var(--ink); font-weight: 600; }
+
+    /* ================= 反馈：角落入口 + 弹窗表单（V3） ================= */
+    .fb-fab {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 60;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font: inherit;
+      font-size: 14.5px;
+      font-weight: 600;
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent), #8fb89b);
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 20px;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(93, 138, 109, .34);
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .fb-fab:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(93, 138, 109, .40); }
+    .fb-fab:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    .fb-fab svg { width: 17px; height: 17px; display: block; }
+
+    .fb-privacy {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border-radius: 12px;
+      padding: 9px 13px;
+      margin-bottom: 16px;
+    }
+
+    .fb-field { display: block; margin-bottom: 14px; }
+    .fb-label {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      font-size: 13.5px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .fb-label em { font-style: normal; font-weight: 400; font-size: 12px; color: var(--muted); }
+
+    .fb-field input,
+    .fb-field select,
+    .fb-field textarea {
+      width: 100%;
+      font: inherit;
+      font-size: 14.5px;
+      color: var(--ink);
+      background: rgba(255, 253, 248, .86);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 11px 14px;
+      outline: none;
+      transition: border-color .2s ease, box-shadow .2s ease;
+    }
+    .fb-field textarea { resize: vertical; min-height: 96px; line-height: 1.6; }
+    .fb-field input:focus,
+    .fb-field select:focus,
+    .fb-field textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(93, 138, 109, .14);
+    }
+    .fb-field input:disabled,
+    .fb-field select:disabled,
+    .fb-field textarea:disabled { opacity: .6; }
+
+    .fb-meta {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .fb-hint { font-size: 12.5px; color: var(--muted); }
+    .fb-count { font-size: 12px; color: var(--muted); white-space: nowrap; }
+    .fb-count.is-over { color: #b4553f; }
+
+    .fb-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .fb-submit {
+      flex: 0 0 auto;
+      font: inherit;
+      font-size: 14.5px;
+      font-weight: 600;
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent), #8fb89b);
+      border: 0;
+      border-radius: 999px;
+      padding: 11px 24px;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(93, 138, 109, .28);
+      transition: transform .18s ease, opacity .18s ease;
+    }
+    .fb-submit:hover:not(:disabled) { transform: translateY(-1px); }
+    .fb-submit:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
+
+    .fb-state { font-size: 13px; color: var(--muted); line-height: 1.5; }
+    .fb-state.is-ok { color: var(--accent); font-weight: 600; }
+    .fb-state.is-err { color: #b4553f; }
+
+    /* V3.1 起背景是静态图，不再需要「减少动态效果时隐藏背景」：
+       静止画面本身没有动态，隐藏它反而会让这类用户白白失去背景。 */
+    /* 中等宽度：导航有 7 项，收紧间距，避免和 logo 挤在一起 */
+    @media (max-width: 880px) and (min-width: 641px) {
+      nav.top ul { gap: 14px; font-size: 14px; }
+      nav.top .brand { font-size: 17px; }
+    }
+
+    @media (max-width: 640px) {
+      .hero { padding: 40px 24px; }
+      .hero h1 { font-size: 30px; }
+      .scene-veil { background: rgba(246, 247, 251, .40); }
+
+      /* 导航项变多，允许横向滑动 */
+      nav.top .nav-inner { gap: 10px; }
+      nav.top .brand { font-size: 16px; }
+      nav.top ul {
+        gap: 12px;
+        overflow-x: auto;
+        white-space: nowrap;
+        scrollbar-width: none;
+      }
+      nav.top ul::-webkit-scrollbar { display: none; }
+
+      /* 数字分身聊天区 */
+      .twin-card { padding: 18px 16px 14px; border-radius: 22px; }
+      .twin-avatar { width: 40px; height: 40px; font-size: 16px; }
+      .twin-who strong { font-size: 14.5px; }
+      .chat { height: 300px; }
+      .msg { max-width: 90%; font-size: 14px; }
+      .chat-form button { padding: 11px 18px; }
+
+      /* 分享：入口卡片 */
+      .share-entry { flex-direction: column; align-items: stretch; gap: 14px; }
+      .share-open { justify-content: center; width: 100%; }
+
+      /* 分享：弹窗改成底部抽屉，接近全屏 */
+      .modal-wrap { padding: 0; place-items: end stretch; }
+      .modal-panel {
+        width: 100%;
+        max-height: 92vh;
+        border-radius: 24px 24px 0 0;
+        border-bottom-left-radius: 0;
+      }
+      .modal-head { padding: 16px 18px 12px; }
+      .modal-body { padding: 16px 18px 20px; }
+
+      /* 分享：播放器 */
+      .player { gap: 10px; padding: 10px 12px; border-radius: 18px; }
+      .play-btn { width: 40px; height: 40px; border-radius: 50% 50% 50% 12px; }
+      .track { padding: 9px 12px; gap: 10px; border-radius: 14px; }
+      .track-note { font-size: 12px; white-space: normal; }
+      .rec-grid { grid-template-columns: 1fr; }
+
+      /* 反馈：右下角入口缩小一点，提示与字数上下排 */
+      .fb-fab { right: 14px; bottom: 14px; padding: 11px 17px; font-size: 14px; }
+      .fb-meta { flex-direction: column; gap: 2px; }
+
+      /* Vibe Coding 日志 */
+      .log-item { padding-left: 22px; }
+      .log-title { font-size: 15px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- ================= 全屏背景图 + 遮罩 ================= -->
+  <!-- 素材带 ?v= 版本号：换素材时把下面的 v 数字 +1，避免浏览器读旧缓存 -->
+  <!-- V3.1 定稿：背景改成静态图（不再用视频），画面完全静止，无任何位移或缩放 -->
+  <img class="scene" src="assets/hero-bg.jpg?v=10" alt="" fetchpriority="high" decoding="async" />
+  <div class="scene-veil"></div>
+
+  <!-- ================= 顶部导航：粘性 + 毛玻璃 ================= -->
+  <nav class="top">
+    <div class="wrap nav-inner">
+      <div class="brand">徐子涵<span>.</span></div>
+      <ul>
+        <li><a href="#about">关于</a></li>
+        <li><a href="#interests">兴趣爱好</a></li>
+        <li><a href="#experience">个人经历</a></li>
+        <li><a href="#contact">联系</a></li>
+        <li><a href="#share">分享</a></li>
+        <li><a href="#twin" id="navTwin">数字分身</a></li>
+        <li><a href="#log">日志</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="wrap">
+    <!-- ================= Hero / 我是谁 ================= -->
+    <header class="hero" id="about">
+      <h1>你好，我是徐子涵</h1>
+      <div class="role">学生</div>
+      <div class="meta">
+        <span class="chip">男 · 18 岁</span>
+        <span class="chip">现居深圳</span>
+        <span class="chip">天津大学 · 香港理工大学深圳未来技术学院</span>
+      </div>
+    </header>
+
+    <!-- ================= 兴趣爱好 ================= -->
+    <section id="interests">
+      <h2 class="sec">兴趣爱好</h2>
+      <div class="interest-grid">
+        <div class="interest">
+          <h3>打乒乓球</h3>
+          <p>既能活动身体，也考验反应与专注，是我常用来放松的运动。</p>
+        </div>
+        <div class="interest">
+          <h3>弹中阮</h3>
+          <p>学弹这项中国传统弹拨乐器，享受音乐带来的安静与节奏。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 个人经历 ================= -->
+    <section id="experience">
+      <h2 class="sec">个人经历</h2>
+      <div class="card">
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="date">2026 · 至今</div>
+            <h3>大一 · 计算机科学与技术</h3>
+            <p style="color:var(--muted);font-size:14.5px;">
+              天津大学 · 香港理工大学深圳未来技术学院，本科一年级，主修计算机科学与技术，正在学习和探索编程与软件开发的领域。
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 为什么做这个主页 ================= -->
+    <section id="about-site">
+      <h2 class="sec">为什么做这个主页</h2>
+      <div class="card">
+        <p style="color:var(--muted);">
+          为进行对“vibe coding”课程内容的学习，我正在创建并完善一个个人主页。我将通过利用AI工具辅助该主页从v1改进至v4，丰富其功能，打磨其品质，从而训练AI运用能力。我将通过将个人主页作为真实产品进行迭代的实践，助力形成可复用的Vibe Coding创作习惯。
+        </p>
+      </div>
+    </section>
+
+    <!-- ================= 联系 ================= -->
+    <section id="contact">
+      <h2 class="sec">联系我</h2>
+      <div class="card">
+        <p style="margin-bottom:12px;">
+          如果你对我的项目感兴趣，或想聊聊合作，欢迎通过以下方式联系我：
+          <!-- V3 说明：这里后续会加入“留下反馈 / 留言”表单，数据存入 Supabase。 -->
+        </p>
+        <p style="color:var(--muted)">
+          邮箱：theinbetween07@gmail.com
+        </p>
+      </div>
+    </section>
+
+    <!-- ================= 分享（点开 → 弹窗展示，不堆在主页上） ================= -->
+    <section id="share">
+      <h2 class="sec">分享</h2>
+
+      <div class="card share-entry" id="shareEntry" role="button" tabindex="0"
+           aria-haspopup="dialog" aria-controls="shareModal">
+        <div class="share-entry-main">
+          <div class="share-entry-title">我推荐的一些东西</div>
+          <div class="share-entry-desc">音乐、书、影视、网站工具、播客 —— 点开看完整清单，音乐能直接在里面听。</div>
+          <div class="share-chips">
+            <span class="share-chip">音乐</span>
+            <span class="share-chip">书</span>
+            <span class="share-chip">影视</span>
+            <span class="share-chip">网站 / 工具</span>
+            <span class="share-chip">播客</span>
+          </div>
+        </div>
+        <button type="button" class="share-open" id="openShare">打开分享</button>
+      </div>
+
+    </section>
+
+    <!-- ================= 数字分身聊天区 ================= -->
+    <section id="twin">
+      <h2 class="sec" id="twinTitle">数字分身</h2>
+
+      <div class="twin-card">
+        <div class="twin-top">
+          <div class="twin-avatar" id="twinAvatar">徐</div>
+          <div class="twin-who">
+            <strong id="twinWho">徐子涵 · 数字分身</strong>
+            <span class="twin-status" id="twinStatus">在线 · 规则版预览</span>
+          </div>
+          <!-- 中英文切换 -->
+          <div class="lang-switch" role="group" aria-label="语言 / Language">
+            <button type="button" class="lang-btn is-on" data-lang="zh">中文</button>
+            <button type="button" class="lang-btn" data-lang="en">EN</button>
+          </div>
+        </div>
+
+        <div class="chat" id="chatLog" aria-live="polite" aria-label="聊天记录"></div>
+        <div class="suggests" id="suggests"></div>
+
+        <form class="chat-form" id="chatForm">
+          <input id="chatInput" type="text" autocomplete="off" placeholder="问点什么…" aria-label="输入消息" />
+          <button type="submit" id="chatSend">发送</button>
+        </form>
+      </div>
+
+      <p class="twin-note" id="twinNote">预览版：本地规则匹配，不联网、不调用模型。</p>
+    </section>
+
+    <!-- ================= Vibe Coding 日志 ================= -->
+    <section id="log">
+      <h2 class="sec">Vibe Coding 日志</h2>
+      <div class="card">
+        <ul class="log-list" id="logList"></ul>
+      </div>
+    </section>
+
+    <!-- ================= 页脚 ================= -->
+    <footer>
+      <div class="links">
+        <span>theinbetween07@gmail.com</span>
+      </div>
+      <div>© <span id="year"></span> 徐子涵 · V3</div>
+    </footer>
+
+  </div>
+
+  <!-- ================= 分享弹窗（点卡片才出现，平时不占版面） ================= -->
+  <div class="modal" id="shareModal" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle">
+    <div class="modal-backdrop"></div>
+    <div class="modal-wrap" id="shareWrap">
+      <div class="modal-panel">
+        <div class="modal-head">
+          <h3 id="shareModalTitle">分享</h3>
+          <button type="button" class="modal-close" id="shareClose" aria-label="关闭">×</button>
+        </div>
+
+        <div class="modal-body">
+          <!-- ——— 推荐音乐：在线收听（网易云官方外链播放器） ——— -->
+          <div class="share-block">
+            <h3 class="share-sub">音乐推荐</h3>
+
+            <!-- ——— 在线收听：网易云官方外链播放器 ———
+                 这类曲目不放本地文件（版权），改用平台官方的嵌入播放器。
+                 换歌只需改下面 iframe 里的 id= 数字（网易云歌曲页地址栏里的那个）。
+                 参数 auto=0 表示不自动播放；height=66 是小播放条。 -->
+            <div class="online-card">
+              <div class="online-head">
+                <span class="online-name">Follow</span>
+                <span class="online-by">DIIV · Oshin（2012）</span>
+                <span class="online-src">网易云音乐</span>
+              </div>
+              <p class="online-note">梦幻流行的吉他音墙，声音很暖很雾。适合安静的时候循环。</p>
+              <iframe class="online-player"
+                      src="https://music.163.com/outchain/player?type=2&amp;id=17417072&amp;auto=0&amp;height=66"
+                      title="网易云音乐播放器：DIIV - Follow"
+                      frameborder="no" border="0" marginwidth="0" marginheight="0"
+                      width="330" height="86" loading="lazy"></iframe>
+            </div>
+          </div>
+
+          <!-- ——— 其他推荐：之后完善 ——— -->
+          <div class="share-block">
+            <h3 class="share-sub">其他推荐</h3>
+            <div class="rec-grid">
+              <div class="rec"><h3>书</h3>待补充</div>
+              <div class="rec"><h3>影视</h3>待补充</div>
+              <div class="rec"><h3>网站 / 工具</h3>待补充</div>
+              <div class="rec"><h3>播客</h3>待补充</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 反馈入口：固定在右下角（V3） ================= -->
+  <!-- 课件要求：页面角落放一个清晰的入口，点开是简短表单，不跳转页面 -->
+  <button type="button" class="fb-fab" id="fbFab" aria-haspopup="dialog" aria-controls="fbModal">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8A8.5 8.5 0 0 1 12.5 3h.5a8.5 8.5 0 0 1 8 8v.5z"></path>
+    </svg>
+    <span>反馈</span>
+  </button>
+
+  <!-- ================= 反馈弹窗（V3） ================= -->
+  <div class="modal" id="fbModal" role="dialog" aria-modal="true" aria-labelledby="fbTitle">
+    <div class="modal-backdrop"></div>
+    <div class="modal-wrap" id="fbWrap">
+      <div class="modal-panel">
+        <div class="modal-head">
+          <h3 id="fbTitle">留下反馈</h3>
+          <button type="button" class="modal-close" id="fbClose" aria-label="关闭">×</button>
+        </div>
+
+        <div class="modal-body">
+          <p class="fb-privacy">反馈不会公开，只有我能看到。</p>
+
+          <form id="fbForm" novalidate>
+            <label class="fb-field" for="fbName">
+              <span class="fb-label">名字或昵称 <em>可选</em></span>
+              <input id="fbName" type="text" maxlength="30" autocomplete="nickname" placeholder="怎么称呼你" />
+            </label>
+
+            <label class="fb-field" for="fbRelation">
+              <span class="fb-label">你和我的关系</span>
+              <select id="fbRelation"></select>
+            </label>
+
+            <label class="fb-field" for="fbDevice">
+              <span class="fb-label">这条反馈针对的设备</span>
+              <select id="fbDevice"></select>
+            </label>
+
+            <label class="fb-field" for="fbMessage">
+              <span class="fb-label">反馈内容</span>
+              <textarea id="fbMessage" rows="4" maxlength="500"
+                        placeholder="哪里看不懂、不好找，或者手机上哪里不方便？说具体一点就行。"></textarea>
+            </label>
+            <div class="fb-meta">
+              <span class="fb-hint">可以指出一个具体位置，比如「手机上导航」「分享弹窗」。</span>
+              <span class="fb-count" id="fbCount">0 / 500</span>
+            </div>
+
+            <div class="fb-actions">
+              <button type="submit" class="fb-submit" id="fbSubmit">提交</button>
+              <span class="fb-state" id="fbState" role="status" aria-live="polite"></span>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // 滚动后加深导航毛玻璃
+    const nav = document.querySelector('nav.top');
+    const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 8);
+    document.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    // V3.1 起背景是静态图，无需处理「减少动态效果」偏好（原先在此暂停背景视频）
+
+    /* =====================================================================
+       数字分身聊天区
+       ---------------------------------------------------------------------
+       当前是「本地规则匹配」的预览版：不联网、不调用任何模型、不需要 key。
+       profile + style 这两块，就是将来接真模型时要喂给它的 system prompt。
+       要接真模型，只改下面的 askTwin() 一个函数即可（保持返回 Promise<string>）。
+       ===================================================================== */
+    const TWIN = {
+      // ——— 分身知道的事实 ———
+      profile: {
+        name: '徐子涵',
+        age: 18,
+        city: '深圳',
+        school: '天津大学 · 香港理工大学深圳未来技术学院',
+        year: '大一',
+        major: '计算机科学与技术',
+        recent: '上课；在做这个还很潦草的个人主页',
+        email: 'theinbetween07@gmail.com',
+        interests: ['打乒乓球', '弹中阮']
+      },
+      // ——— 要模仿的聊天风格 ———
+      style: '简短、口语、直接，不客套、不啰嗦；不用 emoji；不知道就说不知道，不瞎编。',
+
+      // ——— 规则表：k 是关键词，命中就按提问语言回对应答案 ———
+      rules: [
+        { k: ['你好', '在吗', '嗨', 'hi', 'hello', 'hey', '您好'],
+          zh: '你好。想问什么？名字、学校、专业、最近在做什么，都行。',
+          en: "Hey. Ask me anything — name, school, major, what I'm up to." },
+
+        { k: ['名字', '叫什么', '姓名', '你是谁', '你是哪位', '介绍一下', '自我介绍', 'who are you', 'your name', 'introduce yourself', 'name'],
+          zh: '徐子涵，18 岁，深圳。天津大学和香港理工大学深圳未来技术学院，大一，计算机专业。',
+          en: "Xu Zihan, 18, based in Shenzhen. First-year CS student at the TJU–PolyU Shenzhen institute." },
+
+        { k: ['多大', '年龄', '几岁', '岁数', 'age', 'how old'],
+          zh: '18。',
+          en: '18.' },
+
+        { k: ['住哪', '哪里人', '住在', '哪个城市', 'where do you live', 'where are you from', 'which city'],
+          zh: '现居深圳，学校也在深圳。',
+          en: 'Shenzhen. School is here too.' },
+
+        { k: ['学校', '大学', '哪个学校', '天大', '天津大学', '港理工', '香港理工', '学院', 'school', 'university', 'college', 'tju', 'polyu'],
+          zh: '天津大学 · 香港理工大学深圳未来技术学院。',
+          en: 'The Tianjin University–PolyU Shenzhen Future Technology Institute.' },
+
+        { k: ['专业', '学什么', '计算机', 'major', 'computer science', 'cs'],
+          zh: '计算机科学与技术。刚起步，还在啃基础。',
+          en: 'Computer Science. Just started — still on the basics.' },
+
+        { k: ['大几', '年级', '大一', 'freshman', 'what year'],
+          zh: '大一。',
+          en: 'First year.' },
+
+        { k: ['最近', '在做什么', '忙什么', '干嘛', '干什么', 'near future', 'recently', 'what are you doing', 'up to'],
+          zh: '上课。还有在做这个个人主页，现在还挺潦草的。',
+          en: "Classes. And this homepage — still pretty rough, honestly." },
+
+        { k: ['主页', '个人主页', '网站', '网页', 'homepage', 'website', 'this site', 'this page'],
+          zh: '就是你现在看的这个。课程作业，要从 v1 一路改到 v4。',
+          en: "The one you're looking at. Class assignment — v1 all the way to v4." },
+
+        { k: ['课程', 'vibe coding', '为什么做', '作业', 'course', 'assignment', 'why did you'],
+          zh: '为了学 vibe coding。拿自己的主页当真实产品迭代，顺便练怎么用 AI 干活。',
+          en: 'Learning vibe coding. The homepage is the real product I iterate on, to practice working with AI.' },
+
+        { k: ['爱好', '兴趣', '喜欢', '乒乓球', '中阮', '阮', '乐器', '音乐', '运动', 'hobby', 'hobbies', 'interest', 'ping pong', 'table tennis', 'music', 'instrument'],
+          zh: '打乒乓球、弹中阮。一个动的，一个静的。',
+          en: 'Table tennis and the ruan (a Chinese plucked instrument). One loud, one quiet.' },
+
+        { k: ['联系', '邮箱', '邮件', '怎么找你', 'contact', 'email', 'reach you'],
+          zh: '邮箱 theinbetween07@gmail.com。',
+          en: 'Email: theinbetween07@gmail.com.' },
+
+        { k: ['技能', '会什么', '会哪些', '编程语言', 'python', 'java', 'skill', 'skills', 'good at'],
+          zh: '计算机大一，还在打基础。目前主要在学编程、做项目，谈不上会什么。',
+          en: "I'm a first-year — still building foundations. Learning to code and shipping small projects." },
+
+        { k: ['未来', '打算', '规划', '毕业', '目标', 'future', 'plan', 'goal', 'career'],
+          zh: '还没想太远，先把计算机的基础打好。',
+          en: 'Nothing too far out. Getting the fundamentals solid first.' },
+
+        { k: ['数字分身', '分身', '你是ai', '是ai吗', '机器人', '怎么做的', 'digital twin', 'are you ai', 'chatbot', 'bot'],
+          zh: '我是徐子涵的数字分身。现在是规则匹配的预览版，不会自己思考；后面打算接真模型。',
+          en: "I'm Xu Zihan's digital twin. Right now it's a rule-based preview — no real thinking yet. A real model comes later." },
+
+        { k: ['谢谢', '谢了', 'thanks', 'thank you', 'thx'],
+          zh: '不客气。',
+          en: 'No problem.' },
+
+        { k: ['再见', '拜拜', 'bye', 'goodbye', 'see you'],
+          zh: '拜拜。',
+          en: 'Bye.' }
+      ],
+
+      fallback: {
+        zh: '这个我还答不上来。我是规则版，只有固定答案。可以问我：名字、学校、专业、最近在做什么、爱好、联系方式。',
+        en: "Can't answer that one — I'm rule-based, so it's a fixed set. Try: name, school, major, what I'm up to, hobbies, contact."
+      }
+    };
+
+    // ——— 界面文案（中英两版） ———
+    const UI = {
+      zh: {
+        navTwin: '数字分身',
+        title: '数字分身',
+        avatar: '徐',
+        who: '徐子涵 · 数字分身',
+        status: '在线 · 规则版预览',
+        placeholder: '问点什么…',
+        send: '发送',
+        note: '预览版：本地规则匹配，不联网、不调用模型。',
+        greet: '你好。我是徐子涵的数字分身。可以先点下面几个问题试试。',
+        suggests: ['你是谁？', '在哪个学校？', '最近在忙什么？', '有什么爱好？', '怎么联系你？']
+      },
+      en: {
+        navTwin: 'Twin',
+        title: 'Digital Twin',
+        avatar: 'XZ',
+        who: 'Xu Zihan · Digital Twin',
+        status: 'Online · rule-based preview',
+        placeholder: 'Ask something…',
+        send: 'Send',
+        note: 'Preview: local rule matching. No network, no model calls.',
+        greet: "Hi, I'm Xu Zihan's digital twin. Try one of the questions below.",
+        suggests: ['Who are you?', 'Which school?', 'What are you up to?', 'Your hobbies?', 'How to contact you?']
+      }
+    };
+
+    // ——— DOM ———
+    const chatUI = {
+      lang: 'zh',
+      busy: false,
+      log: document.getElementById('chatLog'),
+      suggests: document.getElementById('suggests'),
+      form: document.getElementById('chatForm'),
+      input: document.getElementById('chatInput'),
+      sendBtn: document.getElementById('chatSend'),
+      title: document.getElementById('twinTitle'),
+      avatar: document.getElementById('twinAvatar'),
+      who: document.getElementById('twinWho'),
+      status: document.getElementById('twinStatus'),
+      navTwin: document.getElementById('navTwin'),
+      note: document.getElementById('twinNote')
+    };
+
+    const t = (key) => UI[chatUI.lang][key];
+
+    // 把关键词和输入都归一化：去空格与常见标点，英文转小写
+    const normalize = (s) => s.toLowerCase().replace(/[\s,，。.!！?？、~～…"'’‘“”]/g, '');
+
+    // 规则匹配：命中的关键词越长，得分越高（更具体的优先）
+    function answerFor(text) {
+      const n = normalize(text);
+      let best = null;
+      let bestScore = 0;
+      for (const rule of TWIN.rules) {
+        let score = 0;
+        for (const kw of rule.k) {
+          const key = normalize(kw);
+          if (key && n.includes(key)) score += key.length;
+        }
+        if (score > bestScore) { bestScore = score; best = rule; }
+      }
+      // 用提问的语言回答：含中文就用中文，否则用英文
+      const isZh = /[\u4e00-\u9fa5]/.test(text);
+      if (!best) return isZh ? TWIN.fallback.zh : TWIN.fallback.en;
+      return isZh ? best.zh : best.en;
+    }
+
+    // ★ 将来接真模型，只改这一个函数（保持返回 Promise<string>）
+    async function askTwin(text) {
+      return answerFor(text);
+
+      // 接 API 大致长这样：
+      // const res = await fetch('/api/twin', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ message: text, lang: chatUI.lang, profile: TWIN.profile, style: TWIN.style })
+      // });
+      // return (await res.json()).reply;
+    }
+
+    function addBubble(text, who) {
+      const el = document.createElement('div');
+      el.className = 'msg ' + who;
+      el.textContent = text;
+      chatUI.log.appendChild(el);
+      chatUI.log.scrollTop = chatUI.log.scrollHeight;
+      return el;
+    }
+
+    function addTyping() {
+      const el = document.createElement('div');
+      el.className = 'msg bot typing';
+      el.innerHTML = '<i></i><i></i><i></i>';
+      chatUI.log.appendChild(el);
+      chatUI.log.scrollTop = chatUI.log.scrollHeight;
+      return el;
+    }
+
+    async function send(text) {
+      const clean = String(text || '').trim();
+      if (!clean || chatUI.busy) return;
+
+      addBubble(clean, 'me');
+      chatUI.input.value = '';
+      chatUI.busy = true;
+
+      const dots = addTyping();
+      const reply = await askTwin(clean);
+      await new Promise((r) => setTimeout(r, 380 + Math.random() * 360));
+      dots.remove();
+      addBubble(reply, 'bot');
+
+      chatUI.busy = false;
+      chatUI.input.focus();
+    }
+
+    chatUI.form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      send(chatUI.input.value);
+    });
+
+    function renderSuggests() {
+      chatUI.suggests.innerHTML = '';
+      for (const q of t('suggests')) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'suggest';
+        btn.textContent = q;
+        btn.addEventListener('click', () => send(q));
+        chatUI.suggests.appendChild(btn);
+      }
+    }
+
+    function applyLang(lang) {
+      chatUI.lang = lang;
+      document.querySelectorAll('.lang-btn').forEach((b) => {
+        b.classList.toggle('is-on', b.dataset.lang === lang);
+      });
+      document.getElementById('twinTitle').textContent = t('title');
+      chatUI.avatar.textContent = t('avatar');
+      chatUI.who.textContent = t('who');
+      chatUI.status.textContent = t('status');
+      chatUI.navTwin.textContent = t('navTwin');
+      chatUI.input.placeholder = t('placeholder');
+      chatUI.sendBtn.textContent = t('send');
+      chatUI.note.textContent = t('note');
+      document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+      renderSuggests();
+    }
+
+    document.querySelectorAll('.lang-btn').forEach((btn) => {
+      btn.addEventListener('click', () => applyLang(btn.dataset.lang));
+    });
+
+    // 初始化
+    applyLang('zh');
+    addBubble(t('greet'), 'bot');
+
+    /* =====================================================================
+       分享区 · 音乐推荐（在线收听）
+       ---------------------------------------------------------------------
+       商业版权歌曲「不放本地文件」，改用网易云官方的外链播放器嵌入。
+       换歌：在弹窗里复制一份 .online-card，改 iframe 里的 id= 数字即可。
+       参数 auto=0 表示不自动播放；height=66 是小播放条。
+       （V2.9 移除了自绘播放器：只认本地文件的方案对版权曲目不适用，
+         留着空列表反而像半成品，页面上只保留「在线收听」。）
+       ===================================================================== */
+
+    /* =====================================================================
+       分享弹窗：平时不占版面，点入口卡片才展开
+       ---------------------------------------------------------------------
+       关闭方式有三种：右上角 ×、点弹窗外面的空白、按 Esc。
+       ===================================================================== */
+    const shareModal = document.getElementById('shareModal');
+    const shareWrap = document.getElementById('shareWrap');
+    const shareEntry = document.getElementById('shareEntry');
+    const openShareBtn = document.getElementById('openShare');
+    const shareCloseBtn = document.getElementById('shareClose');
+
+    let lastFocus = null;
+
+    function isShareOpen() {
+      return shareModal.classList.contains('is-open');
+    }
+
+    function openShare() {
+      if (isShareOpen()) return;
+      lastFocus = document.activeElement;
+      shareModal.classList.add('is-open');
+      document.body.style.overflow = 'hidden'; // 锁背景滚动
+      shareCloseBtn.focus();
+    }
+
+    function closeShare() {
+      if (!isShareOpen()) return;
+      shareModal.classList.remove('is-open');
+      // 反馈弹窗可能还开着，那就别急着解锁背景滚动
+      if (!document.querySelector('.modal.is-open')) document.body.style.overflow = '';
+      // 焦点还给刚才点开的那个元素，键盘用户不会迷路
+      if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+    }
+
+    // 入口卡片整块可点
+    shareEntry.addEventListener('click', openShare);
+    shareEntry.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openShare(); }
+    });
+    openShareBtn.addEventListener('click', (e) => { e.stopPropagation(); openShare(); });
+    shareCloseBtn.addEventListener('click', closeShare);
+
+    // 点弹窗外的空白关闭（点面板内部不关）
+    shareWrap.addEventListener('click', (e) => {
+      if (e.target === shareWrap) closeShare();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isShareOpen()) closeShare();
+    });
+
+    /* =====================================================================
+       Vibe Coding 日志
+       ---------------------------------------------------------------------
+       【约定】每次让我优化主页后，就往 VIBE_LOG 数组「最前面」加一条：
+         { ver, date, title, gain }
+         · ver   版本号，V2.x 递增
+         · date  改动当天日期 YYYY-MM-DD
+         · title 这次做了什么（一句话）
+         · gain  进步在哪 —— 这条最重要，写「从 A 变成 B」，别只列改了什么
+       gain 里可以用 <strong> 强调关键词。
+       ===================================================================== */
+    const VIBE_LOG = [
+      {
+        ver: 'V3.1', date: '2026-09-17',
+        title: '背景定稿：从会动的视频换成一张静止的图',
+        gain: '背景<strong>从「一直在动」回到「完全静止」</strong>。这条弯路走完才明白：为了让画面不发死，我先给视频加了缓推，又加深成往复摇摆，但<strong>眼角余光里总有东西在晃</strong> —— 看久了是干扰，不是氛围。换成一张静帧后<strong>页面终于安静下来</strong>，注意力回到文字本身。顺带掉了 <strong>21 倍体积</strong>（907 KB → 43 KB），打开更快。背景的职责是「不打扰」，而不是「被注意到」。'
+      },
+      {
+        ver: 'V3', date: '2026-09-17',
+        title: '加上反馈入口：网站第一次能听见别人说话',
+        gain: '主页<strong>从「只能被看」变成「能被评价」</strong>：右下角多了一个入口，任何访客都能留下意见，数据直接存进 Supabase —— <strong>意见第一次被真正保存下来</strong>，而不是说完就散。之前「该改什么」全靠自己猜，从这一版开始<strong>有依据了</strong>。同时这也是第一次把网站<strong>发布到公开网址</strong>：别人打开的是真链接，不再是我本地的一张截图。'
+      },
+      {
+        ver: 'V2.9', date: '2026-09-10',
+        title: '换季：米色 + 浅绿，删掉自绘播放器',
+        gain: '整站<strong>从冷白蓝换成米色 + 浅绿</strong>：背景还是那片绿草视频，但卡片、按钮、文字的中性色全部转暖，蓝色强调色换成抹茶绿 —— 观感上<strong>从「科技蓝」变成「纸和植物」</strong>，和背景视频同一色系，不再是「白卡片浮在绿草地上」。同时删掉了自绘播放器和三条占位音频：只认本地文件的方案对版权曲目不适用，<strong>留着空列表比删掉更像半成品</strong>，音乐推荐统一走「在线收听」。'
+      },
+      {
+        ver: 'V2.8', date: '2026-09-10',
+        title: '加上「在线收听」：网易云官方播放器',
+        gain: '分享区第一次出现<strong>真实的歌</strong>（之前三条都是占位音）。更重要的是找到了一条<strong>合法的在线方案</strong>：商业唱片不下载文件，改用网易云官方的外链播放器 —— 页面里照样能听，但<strong>仓库里不会多出任何版权素材</strong>。以后「想推荐但手上没文件」的歌，都有统一的地方放了。'
+      },
+      {
+        ver: 'V2.7', date: '2026-09-10',
+        title: '分享改成弹窗 + 收拾掉占位卡片',
+        gain: '主页学会<strong>藏东西</strong>：分享的内容（播放器 + 清单）收进弹窗，页面上只留一张入口卡 —— <strong>滚动时不再被一整块播放器打断</strong>。音频特意放在弹窗外面，所以<strong>关掉弹窗音乐照放</strong>，入口卡上会留一条「正在播放」。同时删掉了兴趣爱好里两个「＋ 新的兴趣（待补充）」虚线卡：<strong>占位越少，页面越不像半成品</strong>。'
+      },
+      {
+        ver: 'V2.6', date: '2026-09-10',
+        title: '加上「分享」和这份日志',
+        gain: '主页从「介绍自己」变成「可以逛、可以听」：分享区的音乐<strong>在当前页面直接播放</strong>，不跳转、不新开标签。同时开了这份日志 —— 以后每次改动都会在这里留一条，<strong>进步变得可追溯</strong>，而不是改完就忘。'
+      },
+      {
+        ver: 'V2.5', date: '2026-09-10',
+        title: '数字分身聊天区',
+        gain: '页面第一次有了<strong>交互</strong>：访客能直接提问，不用只读静态文字。人设和说话风格单独抽成两块，以后接真模型时可以直接当提示词复用 —— <strong>先留好接口，再谈实现</strong>。'
+      },
+      {
+        ver: 'V2.4', date: '2026-09-10',
+        title: '试做原创背景素材（最后回退了）',
+        gain: '这次没改成，但换来一条更重要的认知：<strong>素材来源本身就是设计约束</strong>。工坊素材不能直接公开，所以另做了一套全原创的（AI 静帧 + 缓动），留档备用。失败的那版也是进度。'
+      },
+      {
+        ver: 'V2.3', date: '2026-09-10',
+        title: '背景调鲜艳',
+        gain: '学会用<strong>数据</strong>调审美：把遮罩和卡片的透明度写成一组对照值记进 NOTES，改哪一版、回哪一版都只要动 5 个数字，不用重做。'
+      },
+      {
+        ver: 'V2.2', date: '2026-09-10',
+        title: '背景铺满全页 + 毛玻璃调薄',
+        gain: '从「视频只在顶上一块」变成整页沉浸。视觉层次理清了：背景 −2 → 遮罩 −1 → 内容 0 → 导航 50，<strong>层级一次说清，后面加东西不会再打架</strong>。'
+      },
+      {
+        ver: 'V2.1', date: '2026-09-10',
+        title: '动态视频背景 + 粘性毛玻璃导航',
+        gain: '页面第一次「动」起来。`backdrop-filter` 配 `position: sticky`，让导航滚动时始终在，又不抢内容 —— <strong>从纯静态排版进入视觉设计</strong>。'
+      },
+      {
+        ver: 'V1', date: '2026-09-10',
+        title: '主页第一版',
+        gain: '从零搭出骨架：关于我 / 兴趣爱好 / 个人经历 / 联系我。<strong>先把「有什么」立住，再谈好不好看。</strong>'
+      }
+    ];
+
+    function renderLog() {
+      const list = document.getElementById('logList');
+      list.innerHTML = '';
+      VIBE_LOG.forEach((item) => {
+        const li = document.createElement('li');
+        li.className = 'log-item';
+
+        const head = document.createElement('div');
+        head.className = 'log-head';
+        const ver = document.createElement('span');
+        ver.className = 'log-ver';
+        ver.textContent = item.ver;
+        const date = document.createElement('span');
+        date.className = 'log-date';
+        date.textContent = item.date;
+        head.append(ver, date);
+
+        const title = document.createElement('h3');
+        title.className = 'log-title';
+        title.textContent = item.title;
+
+        const gain = document.createElement('p');
+        gain.className = 'log-gain';
+        gain.innerHTML = item.gain; // 内容由本文件写死，非用户输入
+
+        li.append(head, title, gain);
+        list.appendChild(li);
+      });
+    }
+
+    renderLog();
+
+    /* =====================================================================
+       反馈（V3）：右下角入口 + 弹窗表单 → 提交到 Supabase
+       ---------------------------------------------------------------------
+       数据流：访客浏览器 → Supabase 后台（不是 GitHub Pages 替你写数据库）
+       安全：这里只放 publishable / anon key —— 它本来就允许公开，
+             权限由数据库的 RLS 策略管着（访客只能 INSERT，读不到任何反馈）。
+             secret / service_role key 永远不要写进这个文件。
+       配置步骤见 docs/v3-supabase-setup.md。
+       ===================================================================== */
+
+    // ★ 把下面两个值换成你自己 Supabase 项目的（见 docs/v3-supabase-setup.md）
+    // ★ 已接入真实 Supabase 项目（见 docs/v3-supabase-setup.md）
+    const SUPABASE = {
+      url: 'https://yfgqizatcxrgyvodrogb.supabase.co',
+      publishableKey: 'sb_publishable_bmvH9wcTrXUkchMO9LfRew_bdXSYpW8'
+    };
+
+    // 提交时自动附带，访客不用填
+    const SITE_VERSION = 'V3';
+
+    const FB_MSG_MAX = 500;
+    const FB_RELATIONS = ['同学', '老师', '家人', '朋友', '同事', '其他', '不便透露'];
+    const FB_DEVICES = ['电脑', '手机', '平板', '其他'];
+
+    const fb = {
+      modal: document.getElementById('fbModal'),
+      wrap: document.getElementById('fbWrap'),
+      fab: document.getElementById('fbFab'),
+      closeBtn: document.getElementById('fbClose'),
+      form: document.getElementById('fbForm'),
+      name: document.getElementById('fbName'),
+      relation: document.getElementById('fbRelation'),
+      device: document.getElementById('fbDevice'),
+      message: document.getElementById('fbMessage'),
+      count: document.getElementById('fbCount'),
+      submitBtn: document.getElementById('fbSubmit'),
+      state: document.getElementById('fbState')
+    };
+
+    let fbLastFocus = null;
+    let fbBusy = false;
+
+    function fbIsOpen() {
+      return fb.modal.classList.contains('is-open');
+    }
+
+    // 两个值都填了才算接上后台
+    function fbConfigured() {
+      return !!(SUPABASE.url && SUPABASE.publishableKey);
+    }
+
+    function fbSetState(text, kind) {
+      fb.state.textContent = text;
+      fb.state.classList.toggle('is-ok', kind === 'ok');
+      fb.state.classList.toggle('is-err', kind === 'err');
+    }
+
+    function fbFillSelect(sel, options, placeholder) {
+      sel.innerHTML = '';
+      const head = document.createElement('option');
+      head.value = '';
+      head.textContent = placeholder;
+      sel.appendChild(head);
+      options.forEach((v) => {
+        const opt = document.createElement('option');
+        opt.value = v;
+        opt.textContent = v;
+        sel.appendChild(opt);
+      });
+    }
+
+    // 按当前设备预选一项，访客仍然可以改（课件要求「让访客明确选择」）
+    function fbGuessDevice() {
+      const ua = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
+      if (/iPad|Tablet/i.test(ua)) return '平板';
+      if (/Mobi|Android|iPhone|iPod/i.test(ua)) return '手机';
+      if (/Windows|Macintosh|Mac OS X|Linux|CrOS/i.test(ua)) return '电脑';
+      return '';
+    }
+
+    function fbSyncCount() {
+      const n = fb.message.value.length;
+      fb.count.textContent = n + ' / ' + FB_MSG_MAX;
+      fb.count.classList.toggle('is-over', n > FB_MSG_MAX);
+    }
+
+    function fbValidate() {
+      const msg = fb.message.value.trim();
+      if (!fb.relation.value) return '请选择你和我的关系。';
+      if (!fb.device.value) return '请选择这条反馈针对的设备。';
+      if (msg.length < 4) return '反馈内容再写几个字吧。';
+      if (msg.length > FB_MSG_MAX) return '反馈内容超过 ' + FB_MSG_MAX + ' 字了。';
+      return '';
+    }
+
+    // ★ 真正的写入：POST 到 Supabase 的 REST 接口。
+    //   官方客户端库的 insert 底层就是这一次请求；直接用 fetch 可以少引一个 CDN 依赖。
+    async function insertFeedback(row) {
+      const endpoint = SUPABASE.url.replace(/\/+$/, '') + '/rest/v1/feedback';
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE.publishableKey,
+          Authorization: 'Bearer ' + SUPABASE.publishableKey,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal'
+        },
+        body: JSON.stringify(row)
+      });
+      if (!res.ok) {
+        let detail = '';
+        try { detail = String(await res.text()).slice(0, 160); } catch (e) { /* 读不到就算了 */ }
+        const err = new Error('HTTP ' + res.status);
+        err.detail = detail;
+        throw err;
+      }
+      return true;
+    }
+
+    async function fbSubmit(e) {
+      e.preventDefault();
+      if (fbBusy) return; // 提交中再点也没用 → 防误点重复提交
+
+      const problem = fbValidate();
+      if (problem) { fbSetState(problem, 'err'); return; }
+
+      if (!fbConfigured()) {
+        fbSetState('反馈后台还没接上，暂时收不到。可以先用邮件：theinbetween07@gmail.com', 'err');
+        return;
+      }
+
+      const row = {
+        name: fb.name.value.trim() || null,
+        relation: fb.relation.value,
+        device: fb.device.value,
+        message: fb.message.value.trim(),
+        version: SITE_VERSION
+      };
+
+      fbBusy = true;
+      fb.submitBtn.disabled = true;
+      fb.submitBtn.textContent = '提交中…';
+      fbSetState('正在提交…', '');
+
+      try {
+        await insertFeedback(row);
+        // 确认成功之后才清空、才提示成功
+        fb.form.reset();
+        fb.device.value = fbGuessDevice();
+        fbSyncCount();
+        fbSetState('收到了，谢谢！', 'ok');
+      } catch (err) {
+        // 失败：内容原样保留，允许重试
+        const why = (err && err.message) ? err.message : '网络或权限问题';
+        fbSetState('没提交成功（' + why + '），内容还在，可以再试一次。', 'err');
+      } finally {
+        fbBusy = false;
+        fb.submitBtn.disabled = false;
+        fb.submitBtn.textContent = '提交';
+      }
+    }
+
+    function fbOpen() {
+      if (fbIsOpen()) return;
+      fbLastFocus = document.activeElement;
+      fb.modal.classList.add('is-open');
+      document.body.style.overflow = 'hidden'; // 锁背景滚动
+      fb.name.focus();
+    }
+
+    function fbClose() {
+      if (!fbIsOpen()) return;
+      fb.modal.classList.remove('is-open');
+      // 分享弹窗可能还开着，那就别急着解锁背景滚动
+      if (!document.querySelector('.modal.is-open')) document.body.style.overflow = '';
+      if (fbLastFocus && typeof fbLastFocus.focus === 'function') fbLastFocus.focus();
+    }
+
+    fbFillSelect(fb.relation, FB_RELATIONS, '请选择');
+    fbFillSelect(fb.device, FB_DEVICES, '请选择');
+    fb.device.value = fbGuessDevice();
+    fbSyncCount();
+    if (!fbConfigured()) fbSetState('（本地预览：后台还没接上）', '');
+
+    fb.fab.addEventListener('click', fbOpen);
+    fb.closeBtn.addEventListener('click', fbClose);
+    fb.form.addEventListener('submit', fbSubmit);
+    fb.message.addEventListener('input', fbSyncCount);
+    fb.wrap.addEventListener('click', (e) => {
+      if (e.target === fb.wrap) fbClose(); // 点弹窗外的空白关闭
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && fbIsOpen()) fbClose();
+    });
+  </script>
+</body>
+</html>

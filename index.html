@@ -4,7 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>徐子涵 · 个人主页</title>
-  <meta name="description" content="徐子涵的个人主页 —— 关于我、经历、技能、项目与联系方式。" />
+  <meta name="description" content="徐子涵的个人主页 —— 关于我、兴趣爱好、个人经历、分享推荐、数字分身与主页迭代日志。" />
+
+  <!-- 分享预览：把链接发到聊天软件 / 社交平台时，直接显示标题、描述和缩略图 -->
+  <!-- og:image 必须写绝对地址：抓取分享卡片时没有「当前页面」这个上下文，相对路径取不到图 -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="徐子涵 · 个人主页" />
+  <meta property="og:description" content="天津大学 · 香港理工大学深圳未来技术学院大一学生。关于我、兴趣爱好、分享推荐、数字分身与迭代日志。" />
+  <meta property="og:url" content="https://theinbetween07-byte.github.io/personal-website/" />
+  <meta property="og:image" content="https://theinbetween07-byte.github.io/personal-website/assets/hero-bg.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
   <style>
     * {
       margin: 0;
@@ -37,7 +48,7 @@
       padding: 24px 20px 64px;
     }
 
-    /* ---- 全屏背景视频 + 遮罩（固定在视口，整页覆盖） ---- */
+    /* ---- 全屏背景图 + 遮罩（固定在视口，整页覆盖） ---- */
     .scene {
       position: fixed;
       inset: 0;
@@ -51,10 +62,11 @@
       inset: 0;
       z-index: -1;
       pointer-events: none;
+      /* V4：遮罩从冷白转暖白，和米色卡片同一色温，不再是冷压暖 */
       background: linear-gradient(180deg,
-        rgba(246, 247, 251, .26) 0%,
-        rgba(246, 247, 251, .16) 45%,
-        rgba(246, 247, 251, .34) 100%);
+        rgba(250, 247, 240, .26) 0%,
+        rgba(250, 247, 240, .16) 45%,
+        rgba(250, 247, 240, .34) 100%);
     }
 
     /* ---- 顶部导航：粘性 + 毛玻璃 ---- */
@@ -748,7 +760,7 @@
     @media (max-width: 640px) {
       .hero { padding: 40px 24px; }
       .hero h1 { font-size: 30px; }
-      .scene-veil { background: rgba(246, 247, 251, .40); }
+      .scene-veil { background: rgba(250, 247, 240, .40); }
 
       /* 导航项变多，允许横向滑动 */
       nav.top .nav-inner { gap: 10px; }
@@ -758,6 +770,12 @@
         overflow-x: auto;
         white-space: nowrap;
         scrollbar-width: none;
+        /* V4：7 个导航项在窄屏必然溢出，但滚动条被隐藏后，页面没有给出任何「右边还有内容」的信号，
+           首次访问者很容易漏掉最后两三项（有人反馈过「完全没看到日志」）。
+           这里用 mask 把右边缘 24px 渐隐：一眼能看出还能往右滑。
+           代价是滚到最右时最后一项也偏淡 —— 比起「完全没提示」，这个代价可以接受。 */
+        -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 24px), transparent 100%);
+        mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 24px), transparent 100%);
       }
       nav.top ul::-webkit-scrollbar { display: none; }
 
@@ -766,7 +784,7 @@
       .twin-avatar { width: 40px; height: 40px; font-size: 16px; }
       .twin-who strong { font-size: 14.5px; }
       .chat { height: 300px; }
-      .msg { max-width: 90%; font-size: 14px; }
+      .msg { max-width: 90%; font-size: 15px; }
       .chat-form button { padding: 11px 18px; }
 
       /* 分享：入口卡片 */
@@ -784,20 +802,26 @@
       .modal-head { padding: 16px 18px 12px; }
       .modal-body { padding: 16px 18px 20px; }
 
-      /* 分享：播放器 */
-      .player { gap: 10px; padding: 10px 12px; border-radius: 18px; }
-      .play-btn { width: 40px; height: 40px; border-radius: 50% 50% 50% 12px; }
-      .track { padding: 9px 12px; gap: 10px; border-radius: 14px; }
-      .track-note { font-size: 12px; white-space: normal; }
+      /* 分享：其他推荐（V4 顺手删掉了手机端残留的播放器样式） */
       .rec-grid { grid-template-columns: 1fr; }
 
-      /* 反馈：右下角入口缩小一点，提示与字数上下排 */
-      .fb-fab { right: 14px; bottom: 14px; padding: 11px 17px; font-size: 14px; }
+      /* 反馈：右下角入口缩小一点，并避开 iPhone 底部手势条（V4） */
+      .fb-fab {
+        right: 14px;
+        bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+        padding: 10px 16px;
+        font-size: 13.5px;
+      }
       .fb-meta { flex-direction: column; gap: 2px; }
 
       /* Vibe Coding 日志 */
       .log-item { padding-left: 22px; }
       .log-title { font-size: 15px; }
+
+      /* V4：手机上把几处偏小的说明文字各提 1px（家人反馈「字有点小」） */
+      .log-gain { font-size: 14.5px; }
+      .online-note { font-size: 14px; }
+      .fb-state { font-size: 13.5px; }
     }
   </style>
 </head>
@@ -829,6 +853,10 @@
     <header class="hero" id="about">
       <h1>你好，我是徐子涵</h1>
       <div class="role">学生</div>
+      <!-- V4：首屏补一句自我介绍。样式 `.hero p.tagline` 从 V1 就写好了，一直没被用上，
+           所以以前首屏只有名字和三个标签，访客 5 秒内看不出这个人在做什么。
+           内容只写页面上真有的东西：大一、专业方向、最近在做的事。 -->
+      <p class="tagline">大一 · 计算机科学与技术。最近在学编程和软件开发，练手的方式就是把这个主页从一个文件慢慢改到现在。</p>
       <div class="meta">
         <span class="chip">男 · 18 岁</span>
         <span class="chip">现居深圳</span>
@@ -882,8 +910,7 @@
       <h2 class="sec">联系我</h2>
       <div class="card">
         <p style="margin-bottom:12px;">
-          如果你对我的项目感兴趣，或想聊聊合作，欢迎通过以下方式联系我：
-          <!-- V3 说明：这里后续会加入“留下反馈 / 留言”表单，数据存入 Supabase。 -->
+          想聊聊课程、学习方向，或者对这个主页有什么想法，都可以找我。页面右下角也有一个反馈入口。
         </p>
         <p style="color:var(--muted)">
           邮箱：theinbetween07@gmail.com
@@ -956,7 +983,7 @@
       <div class="links">
         <span>theinbetween07@gmail.com</span>
       </div>
-      <div>© <span id="year"></span> 徐子涵 · V3</div>
+      <div>© <span id="year"></span> 徐子涵 · V4</div>
     </footer>
 
   </div>
@@ -995,16 +1022,12 @@
             </div>
           </div>
 
-          <!-- ——— 其他推荐：之后完善 ——— -->
-          <div class="share-block">
-            <h3 class="share-sub">其他推荐</h3>
-            <div class="rec-grid">
-              <div class="rec"><h3>书</h3>待补充</div>
-              <div class="rec"><h3>影视</h3>待补充</div>
-              <div class="rec"><h3>网站 / 工具</h3>待补充</div>
-              <div class="rec"><h3>播客</h3>待补充</div>
-            </div>
-          </div>
+          <!-- ——— 其他推荐：V4 起先收起来 ———
+               这里原来放着「书 / 影视 / 网站工具 / 播客」四张卡，正文全是「待补充」+ 虚线框。
+               访客（尤其第一次点开分享弹窗的人）第一反应是「这网站还没做完吧」。
+               判断和 V2.7 删掉「＋ 新的兴趣（待补充）」是同一条：占位越少，越不像半成品。
+               想填内容时：给每类写一条真推荐（名字 + 一句话理由 + 链接），把 CSS 里的
+               `.rec-grid` / `.rec` 用回来，并把 `.rec` 的 `border: 1px dashed` 改成实线。 -->
         </div>
       </div>
     </div>
@@ -1174,9 +1197,19 @@
           en: 'Bye.' }
       ],
 
+      // 兜底：规则里没有的就说没有，不编。写成多条轮换 —— 连着问两个答不上来的问题，
+      // 不该收到一模一样的两句话（那样看起来像坏了，而不是「规则版」）。
       fallback: {
-        zh: '这个我还答不上来。我是规则版，只有固定答案。可以问我：名字、学校、专业、最近在做什么、爱好、联系方式。',
-        en: "Can't answer that one — I'm rule-based, so it's a fixed set. Try: name, school, major, what I'm up to, hobbies, contact."
+        zh: [
+          '这个我还答不上来。我是规则版，只有固定答案。可以问我：名字、学校、专业、最近在做什么、爱好、联系方式。',
+          '这个超出我的范围了 —— 我只有固定答案，不会自己编。可以试试问：学校、专业、爱好、联系方式。',
+          '答不上来。我是规则匹配的预览版，规则里没有的就不硬答。问我：名字、年级、最近在忙什么、怎么联系。'
+        ],
+        en: [
+          "Can't answer that one — I'm rule-based, so it's a fixed set. Try: name, school, major, what I'm up to, hobbies, contact.",
+          "That's outside what I know. I only do fixed answers — I don't make things up. Try: school, major, hobbies, contact.",
+          "No answer for that one. I'm a rule-based preview, so I stick to what's in the rules. Ask me: name, year, what I'm up to, contact."
+        ]
       }
     };
 
@@ -1227,26 +1260,47 @@
 
     const t = (key) => UI[chatUI.lang][key];
 
-    // 把关键词和输入都归一化：去空格与常见标点，英文转小写
+    // 中文关键词走这条路：中文没有词边界，去空格与标点后直接判断「是否包含」就行
     const normalize = (s) => s.toLowerCase().replace(/[\s,，。.!！?？、~～…"'’‘“”]/g, '');
+
+    // 英文关键词走这条路：把非字母数字全部当分隔符，并在首尾补上空格。
+    // 于是 'hi' 只会命中独立的 hi，不会命中 which / this —— 短关键词误命中就是这么来的。
+    const wordify = (s) => ' ' + s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim() + ' ';
+    const hasCJK = (s) => /[\u4e00-\u9fa5]/.test(s);
 
     // 规则匹配：命中的关键词越长，得分越高（更具体的优先）
     function answerFor(text) {
-      const n = normalize(text);
+      const n = normalize(text);   // 给中文关键词用
+      const w = wordify(text);     // 给英文关键词用
       let best = null;
       let bestScore = 0;
       for (const rule of TWIN.rules) {
         let score = 0;
         for (const kw of rule.k) {
-          const key = normalize(kw);
-          if (key && n.includes(key)) score += key.length;
+          if (hasCJK(kw)) {
+            const key = normalize(kw);
+            if (key && n.includes(key)) score += key.length;
+          } else {
+            // 英文（含 'are you ai' 这类多词短语）：必须整词 / 整短语连续出现
+            const phrase = wordify(kw);
+            if (phrase.length > 2 && w.includes(phrase)) score += phrase.trim().length;
+          }
         }
         if (score > bestScore) { bestScore = score; best = rule; }
       }
       // 用提问的语言回答：含中文就用中文，否则用英文
       const isZh = /[\u4e00-\u9fa5]/.test(text);
-      if (!best) return isZh ? TWIN.fallback.zh : TWIN.fallback.en;
+      if (!best) return nextFallback(isZh);
       return isZh ? best.zh : best.en;
+    }
+
+    // 兜底文案轮换：连续两次答不上来，不该看到同一句话
+    let fallbackTurn = 0;
+    function nextFallback(isZh) {
+      const list = isZh ? TWIN.fallback.zh : TWIN.fallback.en;
+      const text = list[fallbackTurn % list.length];
+      fallbackTurn += 1;
+      return text;
     }
 
     // ★ 将来接真模型，只改这一个函数（保持返回 Promise<string>）
@@ -1406,13 +1460,18 @@
        ---------------------------------------------------------------------
        【约定】每次让我优化主页后，就往 VIBE_LOG 数组「最前面」加一条：
          { ver, date, title, gain }
-         · ver   版本号，V2.x 递增
+         · ver   版本号递增（当前到 V4）
          · date  改动当天日期 YYYY-MM-DD
          · title 这次做了什么（一句话）
          · gain  进步在哪 —— 这条最重要，写「从 A 变成 B」，别只列改了什么
        gain 里可以用 <strong> 强调关键词。
        ===================================================================== */
     const VIBE_LOG = [
+      {
+        ver: 'V4', date: '2026-09-24',
+        title: '先收拾看不见的地方：分享预览、键盘弹窗、兜底文案',
+        gain: '这一版<strong>没加新功能，专门补「别人用起来会卡住的地方」</strong>。① 链接<strong>从「一坨网址」变成「一张预览卡」</strong>：补上 og 标签和 favicon，发到聊天软件里终于有标题、描述和缩略图 —— 收集反馈全靠发链接，这步绕不过去。② 弹窗<strong>补上键盘规矩</strong>：以前用 Tab 能跑到背景页面上、甚至能叠开两个弹窗、一次 Esc 关掉两个；现在焦点锁在弹窗内、Esc 只关最上层那个。③ 文字<strong>从「写了页面上没有的东西」回到「页面真有」</strong>：删掉「技能、项目」「聊合作」这些对不上号的表述，首屏也用那句一直闲置的 tagline 样式补上了「我是谁、在做什么」。④ 分享弹窗<strong>从「四张待补充」变成只留真能听的那一首</strong>：配上虚线的占位卡全删了，占位越少，越不像半成品。⑤ 手机上<strong>导航右边缘会渐隐</strong>——一眼看出还能往右滑，不再有人漏掉「日志」；正文字号各提 1px，右下角按钮避开底部手势条。⑥ 数字分身的兜底<strong>从一句死话变成多条轮换</strong>，短关键词也不再误命中。'
+      },
       {
         ver: 'V3.2', date: '2026-09-17',
         title: '网站上线：从一个文件变成一个网址',
@@ -1530,7 +1589,7 @@
     };
 
     // 提交时自动附带，访客不用填
-    const SITE_VERSION = 'V3';
+    const SITE_VERSION = 'V4';
 
     const FB_MSG_MAX = 500;
     const FB_RELATIONS = ['同学', '老师', '家人', '朋友', '同事', '其他', '不便透露'];

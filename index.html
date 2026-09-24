@@ -663,6 +663,18 @@
     .fb-fab:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
     .fb-fab svg { width: 17px; height: 17px; display: block; }
 
+    /* V4：另一个弹窗开着时，这个入口暂时失效 —— 鼠标点不动，键盘也 Tab 不进去
+       （反馈入口是 button，用 disabled 属性；分享入口是 div，用 class + aria） */
+    .fb-fab:disabled,
+    .fb-fab.is-disabled,
+    .share-entry.is-disabled {
+      opacity: .45;
+      pointer-events: none;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
     .fb-privacy {
       display: flex;
       align-items: center;
@@ -1405,6 +1417,81 @@
        ===================================================================== */
 
     /* =====================================================================
+       弹窗通用规矩（V4）
+       ---------------------------------------------------------------------
+       分享弹窗和反馈弹窗共用这一套，不让两个弹窗各自为政：
+         · 一次只开一个 —— 打开某个弹窗时先把另一个关掉，不允许叠开
+         · 打开时把另一个入口禁用 —— 鼠标点不动，键盘也 Tab 不进去
+         · Esc 只关「最上面」那个（modalStack 的栈顶），一次 Esc 只处理一个
+         · Tab / Shift+Tab 在弹窗内循环，焦点不会漏到背景页面上
+       ===================================================================== */
+    const modalStack = [];
+
+    function currentModal() {
+      return modalStack.length ? modalStack[modalStack.length - 1] : null;
+    }
+
+    // 取出弹窗里所有「Tab 能停住」的元素
+    function focusablesIn(panel) {
+      if (!panel || typeof panel.querySelectorAll !== 'function') return [];
+      const sel = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), iframe, [tabindex]:not([tabindex="-1"])';
+      return Array.prototype.filter.call(panel.querySelectorAll(sel), (el) => el && !el.disabled);
+    }
+
+    // 谁开着、谁在最上面 —— 都记在栈里
+    function trackOpen(modal, panel, onEscape) {
+      modalStack.push({ modal: modal, panel: panel, onEscape: onEscape });
+    }
+
+    function trackClose(modal) {
+      const i = modalStack.findIndex((m) => m.modal === modal);
+      if (i > -1) modalStack.splice(i, 1);
+    }
+
+    // 打开某个弹窗时，把「另一个入口」暂时禁用
+    function setEntryEnabled(el, on) {
+      if (!el) return;
+      const isButton = /^BUTTON$/i.test(el.tagName || '');
+      el.classList.toggle('is-disabled', !on);
+      el.setAttribute('aria-disabled', on ? 'false' : 'true');
+      if (isButton) el.disabled = !on;
+      else el.tabIndex = on ? 0 : -1;
+    }
+
+    // Esc 和 Tab 只在这一个地方处理，而且只作用于「最上面」那个弹窗
+    document.addEventListener('keydown', (e) => {
+      const top = currentModal();
+      if (!top) return;
+
+      if (e.key === 'Escape') {
+        top.onEscape(); // 一次 Esc 只关一个，关的是栈顶
+        return;
+      }
+
+      if (e.key !== 'Tab') return;
+
+      const items = focusablesIn(top.panel);
+      if (!items.length) {
+        // 极端情况：取不到可聚焦元素时，也绝不放焦点跑回背景页面
+        e.preventDefault();
+        return;
+      }
+      const first = items[0];
+      const last = items[items.length - 1];
+      const now = document.activeElement;
+      if (items.indexOf(now) === -1) {
+        e.preventDefault();
+        (e.shiftKey ? last : first).focus();
+      } else if (!e.shiftKey && now === last) {
+        e.preventDefault();
+        first.focus(); // Tab 到最后一个 → 回到开头
+      } else if (e.shiftKey && now === first) {
+        e.preventDefault();
+        last.focus(); // Shift+Tab 到第一个 → 跳到末尾
+      }
+    });
+
+    /* =====================================================================
        分享弹窗：平时不占版面，点入口卡片才展开
        ---------------------------------------------------------------------
        关闭方式有三种：右上角 ×、点弹窗外面的空白、按 Esc。
@@ -1423,8 +1510,11 @@
 
     function openShare() {
       if (isShareOpen()) return;
+      if (fbIsOpen()) fbClose(); // 一次只开一个：先把反馈关掉
       lastFocus = document.activeElement;
       shareModal.classList.add('is-open');
+      trackOpen(shareModal, shareModal.querySelector('.modal-panel'), closeShare);
+      setEntryEnabled(fb.fab, false); // 反馈入口暂时点不动
       document.body.style.overflow = 'hidden'; // 锁背景滚动
       shareCloseBtn.focus();
     }
@@ -1432,7 +1522,9 @@
     function closeShare() {
       if (!isShareOpen()) return;
       shareModal.classList.remove('is-open');
-      // 反馈弹窗可能还开着，那就别急着解锁背景滚动
+      trackClose(shareModal);
+      setEntryEnabled(fb.fab, true);
+      // 万一还有别的弹窗开着，那就别急着解锁背景滚动
       if (!document.querySelector('.modal.is-open')) document.body.style.overflow = '';
       // 焦点还给刚才点开的那个元素，键盘用户不会迷路
       if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
@@ -1451,10 +1543,6 @@
       if (e.target === shareWrap) closeShare();
     });
 
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && isShareOpen()) closeShare();
-    });
-
     /* =====================================================================
        Vibe Coding 日志
        ---------------------------------------------------------------------
@@ -1470,7 +1558,7 @@
       {
         ver: 'V4', date: '2026-09-24',
         title: '先收拾看不见的地方：分享预览、键盘弹窗、兜底文案',
-        gain: '这一版<strong>没加新功能，专门补「别人用起来会卡住的地方」</strong>。① 链接<strong>从「一坨网址」变成「一张预览卡」</strong>：补上 og 标签和 favicon，发到聊天软件里终于有标题、描述和缩略图 —— 收集反馈全靠发链接，这步绕不过去。② 弹窗<strong>补上键盘规矩</strong>：以前用 Tab 能跑到背景页面上、甚至能叠开两个弹窗、一次 Esc 关掉两个；现在焦点锁在弹窗内、Esc 只关最上层那个。③ 文字<strong>从「写了页面上没有的东西」回到「页面真有」</strong>：删掉「技能、项目」「聊合作」这些对不上号的表述，首屏也用那句一直闲置的 tagline 样式补上了「我是谁、在做什么」。④ 分享弹窗<strong>从「四张待补充」变成只留真能听的那一首</strong>：配上虚线的占位卡全删了，占位越少，越不像半成品。⑤ 手机上<strong>导航右边缘会渐隐</strong>——一眼看出还能往右滑，不再有人漏掉「日志」；正文字号各提 1px，右下角按钮避开底部手势条。⑥ 数字分身的兜底<strong>从一句死话变成多条轮换</strong>，短关键词也不再误命中。'
+        gain: '这一版<strong>没加新功能，专门补「别人用起来会卡住的地方」</strong>。① 链接<strong>从「一坨网址」变成「一张预览卡」</strong>：补上 og 标签和 favicon，发到聊天软件里终于有标题、描述和缩略图 —— 收集反馈全靠发链接，这步绕不过去。② 弹窗<strong>补上键盘规矩</strong>：以前用 Tab 能跑到背景页面上、点两下就能叠开两个弹窗、一次 Esc 把两个一起关掉；现在<strong>一次只开一个</strong>（打开哪个，另一个入口就先变灰、鼠标点不动、Tab 也进不去）、焦点锁在弹窗内侧循环、<strong>Esc 只关最上面那个</strong>。③ 文字<strong>从「写了页面上没有的东西」回到「页面真有」</strong>：删掉「技能、项目」「聊合作」这些对不上号的表述，首屏也用那句一直闲置的 tagline 样式补上了「我是谁、在做什么」。④ 分享弹窗<strong>从「四张待补充」变成只留真能听的那一首</strong>：配上虚线的占位卡全删了，占位越少，越不像半成品。⑤ 手机上<strong>导航右边缘会渐隐</strong>——一眼看出还能往右滑，不再有人漏掉「日志」；正文字号各提 1px，右下角按钮避开底部手势条。⑥ 数字分身的兜底<strong>从一句死话变成多条轮换</strong>，短关键词也不再误命中。'
       },
       {
         ver: 'V3.2', date: '2026-09-17',
@@ -1735,8 +1823,11 @@
 
     function fbOpen() {
       if (fbIsOpen()) return;
+      if (isShareOpen()) closeShare(); // 一次只开一个：先把分享关掉
       fbLastFocus = document.activeElement;
       fb.modal.classList.add('is-open');
+      trackOpen(fb.modal, fb.modal.querySelector('.modal-panel'), fbClose);
+      setEntryEnabled(shareEntry, false); // 分享入口暂时点不动
       document.body.style.overflow = 'hidden'; // 锁背景滚动
       fb.name.focus();
     }
@@ -1744,7 +1835,9 @@
     function fbClose() {
       if (!fbIsOpen()) return;
       fb.modal.classList.remove('is-open');
-      // 分享弹窗可能还开着，那就别急着解锁背景滚动
+      trackClose(fb.modal);
+      setEntryEnabled(shareEntry, true);
+      // 万一还有别的弹窗开着，那就别急着解锁背景滚动
       if (!document.querySelector('.modal.is-open')) document.body.style.overflow = '';
       if (fbLastFocus && typeof fbLastFocus.focus === 'function') fbLastFocus.focus();
     }
@@ -1762,9 +1855,7 @@
     fb.wrap.addEventListener('click', (e) => {
       if (e.target === fb.wrap) fbClose(); // 点弹窗外的空白关闭
     });
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && fbIsOpen()) fbClose();
-    });
+    // Esc / Tab 交给上面那个统一的 keydown 处理（V4）
   </script>
 </body>
 </html>

@@ -1,0 +1,13 @@
+{
+  "name": "twin-server",
+  "private": true,
+  "version": "4.1.0",
+  "main": "twin-server.js",
+  "scripts": {
+    "start": "node twin-server.js",
+    "eval": "node eval.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

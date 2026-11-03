@@ -1116,11 +1116,16 @@
     // V3.1 起背景是静态图，无需处理「减少动态效果」偏好（原先在此暂停背景视频）
 
     /* =====================================================================
-       数字分身聊天区
+       数字分身聊天区（V4.1 · 期末扩展：接真实大模型）
        ---------------------------------------------------------------------
-       当前是「本地规则匹配」的预览版：不联网、不调用任何模型、不需要 key。
-       profile + style 这两块，就是将来接真模型时要喂给它的 system prompt。
-       要接真模型，只改下面的 askTwin() 一个函数即可（保持返回 Promise<string>）。
+       回答按这个优先级走（askTwin 一个函数收口）：
+         1) 边界问题（家庭、证件、政治、对他人评价、注入攻击）
+            —— 本地直接拒答，请求不出浏览器，零隐私风险
+         2) 配了 TWIN.endpoint → POST 给后端，让真模型现场回答
+            （后端代码在 personal-site/server/，见同目录 README.md）
+         3) 没配 / 模型失败 → 退回渲染前的本地规则版（V4 的老能力）
+       TWIN.endpoint 留空 = 纯规则版（默认，不联网、不需要 key）。
+       接真模型三步：跑起 server/ → 把 endpoint 填成后端地址 → 重新发布页面。
        ===================================================================== */
     const TWIN = {
       // ——— 分身知道的事实 ———
@@ -1137,6 +1142,32 @@
       },
       // ——— 要模仿的聊天风格 ———
       style: '简短、口语、直接，不客套、不啰嗦；不用 emoji；不知道就说不知道，不瞎编。',
+
+      /* ——— 期末扩展：边界清单 ———
+         命中下面这些词的问题，本地直接拒答，压根不发出去。
+         为什么放在前端：这类问题问的是隐私，最安全的是「请求别离开浏览器」。
+         后端也有一份同样的边界（server/twin-config.json），两层都拦 —— 前端挡掉
+         最常见的，后端兜住改写过问法的。 */
+      quickBoundaries: {
+        zh: ['爸妈', '父母', '爸爸', '妈妈', '家里', '家人', '家庭', '住址', '门牌',
+             '身份证', '护照号', '学号', '银行卡', '工资', '收入', '存款',
+             '政治', '党员', '哪个党', '宗教', '信仰', '支持谁',
+             '女朋友', '男朋友', '前任', '身高', '体重', '病史', '病历'],
+        en: ['parents', 'dad', 'mom', 'family member', 'home address',
+             'id number', 'passport', 'student id', 'bank card', 'salary', 'income', 'savings',
+             'political', 'party', 'religion', 'belief',
+             'girlfriend', 'boyfriend', 'height', 'weight', 'medical history']
+      },
+      boundaryReply: {
+        zh: '这个问题我不方便展开 —— 你可以问我关于学业、兴趣、或者这个主页是怎么做出来的。',
+        en: "I'd rather not get into that. Happy to talk about my studies, hobbies, or how this site was built."
+      },
+
+      /* ——— 接真模型：后端地址 ———
+         留空 = 纯规则版（默认行为，GitHub Pages 上就是这一版）。
+         本机联调时改成 'http://127.0.0.1:8787/api/twin'；
+         部署到国内云函数后改成那个公网地址。 */
+      endpoint: '',
 
       // ——— 规则表：k 是关键词，命中就按提问语言回对应答案 ———
       rules: [
@@ -1233,9 +1264,11 @@
         avatar: '徐',
         who: '徐子涵 · 数字分身',
         status: '在线 · 规则版预览',
+        statusModel: '在线 · 模型版',
         placeholder: '问点什么…',
         send: '发送',
         note: '预览版：本地规则匹配，不联网、不调用模型。',
+        noteModel: '已接通大模型：回答由模型现场生成，可能不准，别当正式说法。',
         greet: '你好。我是徐子涵的数字分身。可以先点下面几个问题试试。',
         suggests: ['你是谁？', '在哪个学校？', '最近在忙什么？', '有什么爱好？', '怎么联系你？']
       },
@@ -1245,9 +1278,11 @@
         avatar: 'XZ',
         who: 'Xu Zihan · Digital Twin',
         status: 'Online · rule-based preview',
+        statusModel: 'Online · model',
         placeholder: 'Ask something…',
         send: 'Send',
         note: 'Preview: local rule matching. No network, no model calls.',
+        noteModel: 'Model connected: answers are generated live and can be wrong.',
         greet: "Hi, I'm Xu Zihan's digital twin. Try one of the questions below.",
         suggests: ['Who are you?', 'Which school?', 'What are you up to?', 'Your hobbies?', 'How to contact you?']
       }
@@ -1257,6 +1292,7 @@
     const chatUI = {
       lang: 'zh',
       busy: false,
+      history: [],  // V4.1：发给后端的最近对话（最多 12 条 = 6 轮；边界问题不进）
       log: document.getElementById('chatLog'),
       suggests: document.getElementById('suggests'),
       form: document.getElementById('chatForm'),
@@ -1271,6 +1307,14 @@
     };
 
     const t = (key) => UI[chatUI.lang][key];
+
+    // 状态条 + 说明文字：没接后端 / 后端挂了 → 说「规则版」；接上了 → 说「模型版」。
+    // 不为了好看冒充「AI 在线」—— 访客看到的版本必须和真实运行方式一致。
+    function refreshTwinStatus() {
+      const live = !!TWIN.endpoint && !twinDowngraded;
+      chatUI.status.textContent = t(live ? 'statusModel' : 'status');
+      chatUI.note.textContent = t(live ? 'noteModel' : 'note');
+    }
 
     // 中文关键词走这条路：中文没有词边界，去空格与标点后直接判断「是否包含」就行
     const normalize = (s) => s.toLowerCase().replace(/[\s,，。.!！?？、~～…"'’‘“”]/g, '');
@@ -1315,17 +1359,59 @@
       return text;
     }
 
-    // ★ 将来接真模型，只改这一个函数（保持返回 Promise<string>）
-    async function askTwin(text) {
-      return answerFor(text);
+    // 命中本地边界？中文看包含，英文看整词（和规则表同一套匹配口径）
+    function hitBoundary(text) {
+      const n = normalize(text);
+      for (const kw of TWIN.quickBoundaries.zh) {
+        const key = normalize(kw);
+        if (key && n.includes(key)) return true;
+      }
+      const w = wordify(text);
+      for (const kw of TWIN.quickBoundaries.en) {
+        const phrase = wordify(kw);
+        if (phrase.length > 2 && w.includes(phrase)) return true;
+      }
+      return false;
+    }
 
-      // 接 API 大致长这样：
-      // const res = await fetch('/api/twin', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ message: text, lang: chatUI.lang, profile: TWIN.profile, style: TWIN.style })
-      // });
-      // return (await res.json()).reply;
+    // 模型版调不通（没部署 / 断网 / 超时 / 后端挂了）时置 true，状态条改回「规则版」
+    let twinDowngraded = false;
+
+    // ★ 数字分身唯一入口，保持返回 Promise<string>
+    async function askTwin(text) {
+      const isZh = /[\u4e00-\u9fa5]/.test(text);
+      const outLang = isZh ? 'zh' : 'en';
+
+      // 1) 边界问题：本地直接拒答，请求不出浏览器
+      if (hitBoundary(text)) return TWIN.boundaryReply[outLang];
+
+      // 2) 配了后端 → 交给真模型
+      if (TWIN.endpoint) {
+        try {
+          const res = await fetch(TWIN.endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: text,
+              lang: chatUI.lang,
+              history: chatUI.history  // V4.1：带上最近对话，让模型有上下文
+            })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data && typeof data.reply === 'string' && data.reply.trim()) {
+              return data.reply.trim();   // 成功：用模型的回答
+            }
+          }
+        } catch (_) { /* 断网 / 超时 / CORS → 落到下面降级 */ }
+
+        // 模型端失败：标记降级，让访客知道现在看到的是规则版
+        twinDowngraded = true;
+        refreshTwinStatus();
+      }
+
+      // 3) 没配 endpoint，或模型失败 → 退回本地规则版
+      return answerFor(text);
     }
 
     function addBubble(text, who) {
@@ -1354,11 +1440,23 @@
       chatUI.input.value = '';
       chatUI.busy = true;
 
+      // V4.1：边界问题不进历史 —— 隐私类问题的措辞不该被串到下一轮带去后端
+      const blocked = hitBoundary(clean);
+
       const dots = addTyping();
       const reply = await askTwin(clean);
       await new Promise((r) => setTimeout(r, 380 + Math.random() * 360));
       dots.remove();
       addBubble(reply, 'bot');
+
+      if (!blocked) {
+        chatUI.history.push({ role: 'user', content: clean });
+        chatUI.history.push({ role: 'assistant', content: reply });
+        // 12 条 = 6 轮对话，避免请求体过大
+        if (chatUI.history.length > 12) {
+          chatUI.history.splice(0, chatUI.history.length - 12);
+        }
+      }
 
       chatUI.busy = false;
       chatUI.input.focus();
@@ -1389,11 +1487,10 @@
       document.getElementById('twinTitle').textContent = t('title');
       chatUI.avatar.textContent = t('avatar');
       chatUI.who.textContent = t('who');
-      chatUI.status.textContent = t('status');
       chatUI.navTwin.textContent = t('navTwin');
       chatUI.input.placeholder = t('placeholder');
       chatUI.sendBtn.textContent = t('send');
-      chatUI.note.textContent = t('note');
+      refreshTwinStatus();   // 状态条和说明跟着「接没接上模型」走
       document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
       renderSuggests();
     }
@@ -1555,6 +1652,11 @@
        gain 里可以用 <strong> 强调关键词。
        ===================================================================== */
     const VIBE_LOG = [
+      {
+        ver: 'V4.1', date: '2026-11-03',
+        title: '期末扩展：数字分身从「规则匹配」升级成「真的会回答」',
+        gain: '分身以前是<strong>一堆 if 分支</strong>：问法稍微换个角度就掉进「这个我还答不上来」。这一版把它拆成邮件要求的那四样东西 —— <strong>资料</strong>（身份/经历/观点，分主题写）、<strong>说话规则</strong>（怎么答、什么口吻）、<strong>边界清单</strong>（家庭、证件、政治、对他人评价，一律不展开）、<strong>一个后端接口</strong>。回答按三级走：<strong>先本地拦边界</strong>（这类问题压根不出浏览器，隐私代价为零）→ 再交给<strong>真模型现场生成</strong> → 模型挂了就<strong>自动退回规则版</strong>，状态条同时从「模型版」改回「规则版」，不让访客以为是在跟 AI 聊天。<strong>最大的收获不在代码，在判断</strong>：什么算答对、什么算越界，得自己定 —— 所以我先写了 28 道题（事实/观点/边界/攻击四类），用命中率说话，而不是靠「聊了几句感觉还行」。'
+      },
       {
         ver: 'V4', date: '2026-09-24',
         title: '先收拾看不见的地方：分享预览、键盘弹窗、兜底文案',

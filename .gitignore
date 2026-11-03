@@ -1,1 +1,6 @@
 NOTES_course_python.md
+
+# 数字分身后端：密钥与依赖，绝不提交
+.env
+.env.local
+node_modules/

@@ -1124,8 +1124,8 @@
          2) 配了 TWIN.endpoint → POST 给后端，让真模型现场回答
             （后端代码在 personal-site/server/，见同目录 README.md）
          3) 没配 / 模型失败 → 退回渲染前的本地规则版（V4 的老能力）
-       TWIN.endpoint 留空 = 纯规则版（默认，不联网、不需要 key）。
-       接真模型三步：跑起 server/ → 把 endpoint 填成后端地址 → 重新发布页面。
+       TWIN.endpoint 已指向阿里云函数计算的 twin-server；留空即退回纯规则版
+       （不联网、不需要 key）。后端代码与部署说明见 server/README.md。
        ===================================================================== */
     const TWIN = {
       // ——— 分身知道的事实 ———
@@ -1164,10 +1164,9 @@
       },
 
       /* ——— 接真模型：后端地址 ———
-         留空 = 纯规则版（默认行为，GitHub Pages 上就是这一版）。
-         本机联调时改成 'http://127.0.0.1:8787/api/twin'；
-         部署到国内云函数后改成那个公网地址。 */
-      endpoint: '',
+         现在指向阿里云函数计算（华东1 杭州）上的 twin-server。
+         留空 = 纯规则版；本机联调改成 'http://127.0.0.1:8787/api/twin'。 */
+      endpoint: 'https://twin-server-wfflmepesv.cn-hangzhou.fcapp.run/api/twin',
 
       // ——— 规则表：k 是关键词，命中就按提问语言回对应答案 ———
       rules: [

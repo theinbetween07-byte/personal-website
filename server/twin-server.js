@@ -221,6 +221,15 @@ function corsHeaders(origin) {
   return { Vary: 'Origin' };
 }
 
+// 阿里云 FC 的网关会自己给任何 Origin 回 Allow-Origin，光靠响应头拦不住，
+// 所以白名单模式下必须在服务端直接拒掉陌生来源。
+function originAllowed(origin) {
+  if (ALLOWED_ORIGIN === '*') return true;
+  if (!origin) return true; // 没有 Origin 的请求（curl / 服务端）不参与浏览器同源策略
+  const list = ALLOWED_ORIGIN.split(',').map((s) => s.trim()).filter(Boolean);
+  return list.includes(origin);
+}
+
 // ---------------------------------------------------------------------------
 // 限流：内存 Map，按 IP 每分钟 RATE_LIMIT 次。
 // 云函数实例化频繁，这个限流只在单个实例内生效 —— 够挡「连点」，不是 DDoS 防御。
@@ -346,6 +355,11 @@ async function processRequest({ method, pathname, origin, ip, rawBody }) {
     body: JSON.stringify(payload)
   });
 
+  // 来源白名单（ALLOWED_ORIGIN 不是 '*' 时生效）
+  if (!originAllowed(origin)) {
+    return jsonReply(403, { error: 'origin_not_allowed' });
+  }
+
   // OPTIONS 预检
   if (method === 'OPTIONS') {
     return { status: 204, headers: Object.assign({}, cors, XSSGUARD), body: '' };
@@ -462,19 +476,56 @@ function clientIp(req) {
 // ---------------------------------------------------------------------------
 // 适配器二：云函数（阿里云 FC / 腾讯云 SCF / AWS Lambda 的 HTTP 触发器）
 // ---------------------------------------------------------------------------
+// 各家云函数的 HTTP 事件字段名不统一，这里先归一化再取
+function normalizeEvent(event) {
+  let e = event;
+  if (Buffer.isBuffer(e)) e = e.toString('utf8');
+  if (typeof e === 'string') {
+    const s = e.trim();
+    if (s && (s[0] === '{' || s[0] === '[')) {
+      try {
+        e = JSON.parse(s);
+      } catch (_) {
+        e = { body: s };
+      }
+    } else {
+      e = { body: s, __raw: s };
+    }
+  }
+  if (!e || typeof e !== 'object') e = {};
+  const ctx = e.requestContext || e.context || {};
+  const http = ctx.http || ctx.httpRequest || (ctx.service && ctx.service.http) || {};
+  const headers = e.headers || http.headers || {};
+  return { e, ctx, http, headers };
+}
+
+function pick() {
+  for (let i = 0; i < arguments.length; i += 1) {
+    const v = arguments[i];
+    if (typeof v === 'string' && v) return v;
+  }
+  return '';
+}
+
 async function handler(event, context) {
-  const e = event || {};
-  const headers = e.headers || {};
+  const n = normalizeEvent(event);
+  const e = n.e;
+  const http = n.http || {};
+  const headers = n.headers || {};
+
   const method = String(
-    e.httpMethod || e.method || (e.requestContext && e.requestContext.http && e.requestContext.http.method) || 'POST'
+    pick(e.httpMethod, e.method, http.method, n.ctx.httpMethod, 'POST')
   ).toUpperCase();
-  const target = e.path || e.rawPath || e.url || '/api/twin';
+  const target = pick(e.path, e.rawPath, e.url, http.path, http.rawPath, '/api/twin');
   const pathname = safePathname(target);
-  const origin = headers.origin || headers.Origin || '';
+  const origin =
+    headers.origin || headers.Origin || e.origin || (http.headers && http.headers.origin) || '';
+
   const rawIp =
     headers['x-forwarded-for'] ||
     headers['X-Forwarded-For'] ||
-    (e.requestContext && e.requestContext.identity && e.requestContext.identity.sourceIp) ||
+    http.sourceIp ||
+    (n.ctx.identity && n.ctx.identity.sourceIp) ||
     (context && context.sourceIp) ||
     'lambda';
   const ip = String(rawIp).split(',')[0].trim();
@@ -483,7 +534,33 @@ async function handler(event, context) {
   if (typeof e.body === 'string') rawBody = e.body;
   else if (e.body && typeof e.body === 'object') rawBody = JSON.stringify(e.body);
 
-  // 有些平台会把 body 做 base64，这里不猜，只处理明文 JSON —— 文档里也是这样用的
+  // 部分平台（如 API 网关）会把 body 做 base64；标记了才解码，不乱猜
+  if (e.isBase64Encoded === true && rawBody) {
+    try {
+      rawBody = Buffer.from(rawBody, 'base64').toString('utf8');
+    } catch (err) {
+      rawBody = '';
+    }
+  }
+
+  // 事件结构对不上 HTTP 请求时，只回字段名，方便排查（不含任何值/密钥）
+  if (!pick(e.httpMethod, e.method, http.method, n.ctx.httpMethod) && !pick(e.path, e.rawPath, e.url, http.path, http.rawPath)) {
+    const layer = event && typeof event === 'object' ? event : {};
+    const reqLine = typeof n.e.__raw === 'string' ? n.e.__raw.split('\r\n')[0].split('\n')[0].slice(0, 120) : '';
+    return {
+      statusCode: 400,
+      headers: Object.assign({}, JSON_HEADERS, XSSGUARD),
+      body: JSON.stringify({
+        error: 'event_shape_unknown',
+        eventType: Array.isArray(event) ? 'array' : typeof event,
+        eventKeys: Object.keys(layer).slice(0, 20),
+        ctxKeys: Object.keys(n.ctx || {}).slice(0, 20),
+        httpKeys: Object.keys(http || {}).slice(0, 20),
+        requestLine: /^[A-Z]+ \S+ HTTP\//.test(reqLine) ? reqLine : ''
+      })
+    };
+  }
+
   const result = await processRequest({ method, pathname, origin, ip, rawBody });
   return {
     statusCode: result.status,

@@ -22,7 +22,7 @@ fs.writeFileSync(jsPath, js, 'utf8');
 chk('提取到内联 script 段', scripts.length === 1, scripts.length + ' 段');
 
 // ---- 2. 标签配平 ----
-const tags = ['div', 'section', 'ul', 'li', 'span', 'form', 'button', 'h3', 'p', 'nav', 'header', 'footer', 'style', 'script', 'svg', 'iframe', 'select', 'textarea'];
+const tags = ['div', 'section', 'ul', 'li', 'span', 'form', 'button', 'h3', 'p', 'nav', 'header', 'footer', 'style', 'script', 'svg', 'iframe', 'select', 'textarea', 'article', 'figure', 'figcaption', 'a'];
 tags.forEach((t) => {
   const open = (html.match(new RegExp('<' + t + '(?=[\\s>])', 'g')) || []).length;
   const close = (html.match(new RegExp('</' + t + '>', 'g')) || []).length;
@@ -50,15 +50,15 @@ chk('分享区存在', iShare > -1);
 chk('分享区在数字分身【前面】', iShare > -1 && iTwin > -1 && iShare < iTwin, iShare + ' < ' + iTwin);
 chk('数字分身在日志区前面', iTwin < iLog);
 chk('联系区在分享区前面', iContact < iShare);
-const order = ['about', 'interests', 'experience', 'about-site', 'contact', 'share', 'twin', 'log']
+const order = ['about', 'interests', 'experience', 'projects', 'about-site', 'contact', 'share', 'twin', 'log']
   .map((id) => html.indexOf('id="' + id + '"'));
 chk('整体区块顺序正确（about 是 header.hero，不是 section）', order.every((v, i) => v > -1 && (i === 0 || v > order[i - 1])), order.join(','));
 
 // ---- 6. 导航顺序 ----
 const navBlock = html.slice(html.indexOf('<nav'), html.indexOf('</nav>'));
 const navOrder = [...navBlock.matchAll(/href="#([^"]+)"/g)].map((m) => m[1]);
-chk('导航顺序 = 关于/兴趣/经历/联系/分享/分身/日志',
-  navOrder.join(',') === 'about,interests,experience,contact,share,twin,log', navOrder.join(','));
+chk('导航顺序 = 关于/兴趣/经历/项目/联系/分享/分身/日志',
+  navOrder.join(',') === 'about,interests,experience,projects,contact,share,twin,log', navOrder.join(','));
 
 // ---- 7. 锚点 vs id ----
 const allHrefs = [...html.matchAll(/href="#([^"]+)"/g)].map((m) => m[1]);
@@ -119,8 +119,8 @@ chk('未接后台时不假装成功', js.includes('fbConfigured()'));
 chk('提交中会禁用按钮（防重复）', js.includes('fb.submitBtn.disabled = true'));
 chk('失败时保留内容并可重试', js.includes('内容还在，可以再试一次'));
 chk('随机附带的版本号字段名是 version', /version:\s*SITE_VERSION/.test(js));
-chk('页脚版本号已更新到 V4', html.includes('徐子涵 · V4'));
-chk('SITE_VERSION 同步到 V4', /const SITE_VERSION = 'V4'/.test(js));
+chk('页脚版本号已更新到 V4.2', html.includes('徐子涵 · V4.2'));
+chk('SITE_VERSION 同步到 V4.2', /const SITE_VERSION = 'V4\.2'/.test(js));
 
 // ---- 15. V4：分享预览与元信息 ----
 chk('og 分享预览标签齐全', ['og:type', 'og:title', 'og:description', 'og:url', 'og:image'].every((p) => html.includes('property="' + p + '"')));
@@ -129,7 +129,10 @@ chk('twitter 卡片标签存在', html.includes('name="twitter:card"'));
 chk('favicon 已引用', html.includes('rel="icon"') && html.includes('assets/favicon.svg'));
 chk('favicon 素材文件存在', fs.existsSync(path.join(root, 'assets', 'favicon.svg')));
 const descTag = (html.match(/<meta name="description" content="([^"]*)"/) || [])[1] || '';
-chk('description 与页面真实区块一致（不提技能/项目）', descTag.indexOf('技能') === -1 && descTag.indexOf('项目') === -1, descTag);
+// V4.2：项目区上线后，description 该提就提 —— 但要保证提的区块真在页面上
+const descSections = ['关于我', '兴趣爱好', '个人经历', '项目作品', '分享推荐', '数字分身', '迭代日志'];
+chk('description 与页面真实区块一致（提到项目且区块存在）',
+  descSections.every((s) => descTag.includes(s)) && descTag.indexOf('技能') === -1 && html.includes('id="projects"'), descTag);
 chk('联系区不再提「合作」', !html.includes('想聊聊合作'));
 chk('手机端播放器残留样式已删除', !css.includes('.track-note') && !/\.play-btn\s*\{/.test(css));
 
@@ -140,13 +143,30 @@ chk('兜底不再用单条字符串赋值', !/fallback:\s*\{\s*zh:\s*'/.test(js)
 
 // ---- 17. V4：简单修改（占位卡 / 首屏 / 导航提示 / 手机字号）----
 chk('分享弹窗里不再有「待补充」占位卡', !/<div class="rec">/.test(html) && !html.includes('其他推荐</h3>'));
-chk('推荐位 CSS 仍保留（想填内容时能直接用）', html.includes('.rec-grid') && html.includes('.rec {'));
+chk('绘画展与工具区结构已就位', html.includes('class="art-grid" id="artGrid"') && html.includes('class="tool-list"') && js.includes('const ARTWORKS'));
+chk('画框无图时用朱印兜底（不留破图）', html.includes('.art-seal') && js.includes("addEventListener('error'"));
 chk('首屏补上了 tagline 自我介绍', /<p class="tagline">[^<]{10,}<\/p>/.test(html));
 chk('导航溢出时有右侧渐隐提示', html.includes('mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 24px)'));
 chk('手机端正文字号提升（家人反馈）', html.includes('.log-gain { font-size: 14.5px; }') && html.includes('.msg { max-width: 90%; font-size: 15px; }'));
 chk('固定按钮避开底部安全区', html.includes('env(safe-area-inset-bottom'));
 
-// ---- 18. V4(F6)：弹窗规矩（一次只开一个 / 焦点陷阱 / Esc 只关最上层）----
+// ---- 18. V4.2：内容扩充（项目区 / 国画 / 分享目录）----
+chk('兴趣爱好三张卡且包含国画', (html.match(/class="interest"/g) || []).length === 3 && html.includes('<h3>画国画</h3>'));
+chk('每张兴趣卡都有图标和标签', (html.match(/class="interest-icon"/g) || []).length === 3 && (html.match(/class="interest-tag"/g) || []).length === 6);
+chk('项目作品区三张卡且进了导航', (html.match(/class="proj"/g) || []).length === 3 && navOrder.includes('projects'));
+chk('每张项目卡都有技术标签和入口', (html.match(/class="proj-tag"/g) || []).length >= 6 && (html.match(/class="proj-links"/g) || []).length === 3);
+chk('分享入口标签只剩弹窗里真有的三样', (html.match(/share-chip[^>]*data-jump="/g) || []).length === 3 && !html.includes('>播客</'));
+chk('标签与弹窗小节 id 一一对应', ['music', 'art', 'tools'].every((k) => html.includes('data-jump="' + k + '"') && html.includes('id="share-' + k + '"')));
+chk('首屏有朱印，各区块有英文副标', html.includes('class="hero-seal"') && (html.match(/class="sec-en"/g) || []).length >= 7);
+chk('画框是 3:4 竖幅（国画的比例）', html.includes('aspect-ratio: 3 / 4'));
+chk('数字分身标题拆成可切换的 span（英文切换不冲掉副标）', html.includes('id="twinTitleText"') && js.includes('chatUI.titleEn.textContent'));
+chk('爱好规则覆盖国画，且没有单字「画」关键词（会误伤「计划」）', js.includes("'国画'") && !/'画',/.test(js));
+chk('滚动容器 .modal-body 是定位祖先（跳转才能用 offsetTop）', html.includes('.modal-body { position: relative;'));
+const revealFn = (js.match(/function revealShareSection\([\s\S]*?\n    \}/) || [''])[0];
+chk('目录跳转按 offsetTop 算，不受入场动画 transform 影响',
+  revealFn.includes('target.offsetTop - 12') && !revealFn.includes('getBoundingClientRect'));
+
+// ---- 19. V4(F6)：弹窗规矩（一次只开一个 / 焦点陷阱 / Esc 只关最上层）----
 chk('有弹窗栈与「最上层」判定', js.includes('const modalStack') && js.includes('function currentModal'));
 chk('Esc 与 Tab 只在统一的一处处理', (js.match(/document\.addEventListener\('keydown'/g) || []).length === 1,
   (js.match(/document\.addEventListener\('keydown'/g) || []).length);

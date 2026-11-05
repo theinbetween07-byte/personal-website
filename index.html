@@ -4,13 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>徐子涵 · 个人主页</title>
-  <meta name="description" content="徐子涵的个人主页 —— 关于我、兴趣爱好、个人经历、分享推荐、数字分身与主页迭代日志。" />
+  <meta name="description" content="徐子涵的个人主页 —— 关于我、兴趣爱好、个人经历、项目作品、分享推荐、数字分身与主页迭代日志。" />
 
   <!-- 分享预览：把链接发到聊天软件 / 社交平台时，直接显示标题、描述和缩略图 -->
   <!-- og:image 必须写绝对地址：抓取分享卡片时没有「当前页面」这个上下文，相对路径取不到图 -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content="徐子涵 · 个人主页" />
-  <meta property="og:description" content="天津大学 · 香港理工大学深圳未来技术学院大一学生。关于我、兴趣爱好、分享推荐、数字分身与迭代日志。" />
+  <meta property="og:description" content="天津大学 · 香港理工大学深圳未来技术学院大一学生。关于我、兴趣爱好、项目作品、分享推荐、数字分身与迭代日志。" />
   <meta property="og:url" content="https://theinbetween07-byte.github.io/personal-website/" />
   <meta property="og:image" content="https://theinbetween07-byte.github.io/personal-website/assets/hero-bg.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
@@ -106,6 +106,7 @@
 
     /* ---- Hero ---- */
     .hero {
+      position: relative;
       background: rgba(255, 253, 248, .46);
       backdrop-filter: blur(4px) saturate(1.05);
       -webkit-backdrop-filter: blur(4px) saturate(1.05);
@@ -134,6 +135,32 @@
       flex-wrap: wrap;
       gap: 10px;
     }
+    /* V4.2：首屏右上角一枚朱印 —— 米色纸面上唯一的红，负责「落款」 */
+    .hero-seal {
+      position: absolute;
+      top: 34px;
+      right: 34px;
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      font-family: "STKaiti", "KaiTi", "Songti SC", serif;
+      font-size: 20px;
+      color: #b4553f;
+      border: 1.5px solid rgba(180, 85, 63, .6);
+      border-radius: 5px;
+      background: rgba(255, 253, 248, .30);
+      transform: rotate(-4deg);
+      pointer-events: none;
+      user-select: none;
+    }
+    .hero-kicker {
+      font-size: 11.5px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
     .chip {
       background: rgba(255, 253, 248, .85);
       border: 1px solid var(--line);
@@ -158,6 +185,28 @@
       height: 22px;
       background: var(--accent);
       border-radius: 4px;
+    }
+    /* V4.2：区块标题右侧收一条渐隐细线 + 英文副标 —— 不加装饰图，
+       只用排版分出层次，页面还是同一套米色 + 绿。 */
+    h2.sec::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      margin-left: 4px;
+      background: linear-gradient(90deg, var(--line), rgba(229, 221, 208, 0));
+    }
+    .sec-en {
+      font-size: 11.5px;
+      font-weight: 500;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      opacity: .85;
+    }
+    .sec-note {
+      font-size: 13.5px;
+      color: var(--muted);
+      margin: -8px 0 16px;
     }
     .card {
       background: rgba(255, 253, 248, .62);
@@ -199,10 +248,41 @@
     .tl-item .date { font-size: 13px; color: var(--muted); }
     .tl-item h3 { font-size: 17px; margin: 2px 0 4px; }
 
-    /* 项目 */
-    .projects { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
-    .proj h3 { font-size: 17px; margin-bottom: 6px; }
-    .proj p { color: var(--muted); font-size: 14.5px; }
+    /* 项目作品（V4.2 新增区块）：编号 + 标题 + 一句实话 + 技术标签 + 入口 */
+    .projects { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+    .proj {
+      display: flex;
+      flex-direction: column;
+      background: rgba(255, 253, 248, .62);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 253, 248, .55);
+      border-radius: var(--radius);
+      padding: 20px 20px 18px;
+      box-shadow: var(--shadow);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .proj:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(46, 49, 41, .10); }
+    .proj-no {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .16em;
+      color: var(--accent);
+      opacity: .75;
+    }
+    .proj h3 { font-size: 17px; margin: 6px 0 6px; }
+    .proj p { color: var(--muted); font-size: 14.5px; margin: 0; }
+    .proj-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+    .proj-tag {
+      font-size: 11.5px;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border-radius: 999px;
+      padding: 3px 10px;
+    }
+    .proj-links { display: flex; flex-wrap: wrap; gap: 14px; margin-top: auto; padding-top: 14px; font-size: 13.5px; font-weight: 600; }
+    .proj-links a { display: inline-flex; align-items: center; gap: 4px; }
+    .proj-links span.mute { color: var(--muted); font-weight: 400; }
 
     /* 页脚 */
     footer {
@@ -215,23 +295,62 @@
     }
     footer .links { display: flex; justify-content: center; gap: 18px; margin-bottom: 8px; }
 
-    /* 兴趣爱好 */
+    /* 兴趣爱好（V4.2：从「一句话」扩成「图标 + 正文 + 标签」的小卡片） */
     .interest-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 14px;
     }
     .interest {
+      display: flex;
+      flex-direction: column;
       background: rgba(255, 253, 248, .62);
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
       border: 1px solid rgba(255, 253, 248, .55);
       border-radius: var(--radius);
-      padding: 18px 20px;
+      padding: 20px 20px 18px;
       box-shadow: var(--shadow);
+      transition: transform .2s ease, box-shadow .2s ease;
     }
+    .interest:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(46, 49, 41, .10); }
+    .interest-icon {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 12px;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border-radius: 12px;
+    }
+    .interest-icon svg { width: 24px; height: 24px; display: block; }
     .interest h3 { font-size: 17px; margin-bottom: 6px; }
     .interest p { color: var(--muted); font-size: 14px; margin: 0; }
+    .interest-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+    .interest-tag {
+      font-size: 11.5px;
+      color: var(--muted);
+      background: rgba(255, 253, 248, .85);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 2px 9px;
+    }
+    /* 卡片底部的「去看看」入口：不是链接色，像一句注脚 */
+    .interest-link {
+      margin-top: auto;
+      padding: 12px 0 0;
+      align-self: flex-start;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      background: none;
+      border: 0;
+      cursor: pointer;
+    }
+    .interest-link:hover { text-decoration: underline; }
+    .interest-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
 
     /* ================= 数字分身聊天区 ================= */
     .twin-card {
@@ -445,14 +564,20 @@
     .share-entry-title { font-size: 17px; font-weight: 600; }
     .share-entry-desc { font-size: 14px; color: var(--muted); margin-top: 4px; }
     .share-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+    /* V4.2：标签从「装饰」变成「能点的目录」，点一下直接跳到弹窗里对应那一节 */
     .share-chip {
+      font: inherit;
       font-size: 12px;
       color: var(--muted);
       background: rgba(255, 253, 248, .8);
       border: 1px solid var(--line);
       border-radius: 999px;
       padding: 3px 11px;
+      cursor: pointer;
+      transition: color .18s ease, background .18s ease, border-color .18s ease;
     }
+    .share-chip:hover { color: var(--accent); background: var(--accent-soft); border-color: var(--accent); }
+    .share-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .share-open {
       flex: 0 0 auto;
       display: inline-flex;
@@ -531,7 +656,9 @@
       transition: background .18s ease, color .18s ease;
     }
     .modal-close:hover { background: var(--accent-soft); color: var(--accent); }
-    .modal-body { flex: 1 1 auto; padding: 20px 24px 24px; overflow-y: auto; }
+    /* position: relative 是为了让 .modal-body 成为小节（#share-*）的 offsetParent，
+       跳转时用 offsetTop 就够，不受弹窗入场动画 transform 的影响 */
+    .modal-body { position: relative; flex: 1 1 auto; padding: 20px 24px 24px; overflow-y: auto; }
 
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes modalIn {
@@ -588,21 +715,82 @@
       background: var(--card);
     }
 
-    /* 其他推荐（预留位） */
-    .rec-grid {
+    /* ——— 绘画展（V4.2）：宣纸画框 ———
+       现在还没有作品图，所以画框里先放「纸 + 一枚朱印」的留白版式，
+       图片一放进来就整块盖住，不留「待补充」那种半成品字样。 */
+    .art-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
     }
-    .rec {
-      padding: 16px 18px;
-      font-size: 13.5px;
+    .art { margin: 0; }
+    .art-frame {
+      position: relative;
+      display: grid;
+      place-items: center;
+      aspect-ratio: 3 / 4;
+      overflow: hidden;
+      border-radius: 4px;
+      background:
+        radial-gradient(120% 90% at 30% 20%, rgba(255, 255, 255, .9), transparent 60%),
+        linear-gradient(160deg, #fdfbf4, #f3ecdd);
+      border: 1px solid var(--line);
+      /* 双层内描边 = 画心留白 + 绫边 */
+      box-shadow:
+        inset 0 0 0 7px #fffdf8,
+        inset 0 0 0 8px var(--line),
+        0 10px 22px rgba(46, 49, 41, .07);
+    }
+    .art-frame img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .art-seal {
+      /* 落款印的位置：右下角，像画完在角落按下去的那一枚 */
+      position: absolute;
+      right: 16px;
+      bottom: 16px;
+      font-size: 12px;
+      line-height: 1.15;
+      color: #b4553f;
+      border: 1px solid rgba(180, 85, 63, .55);
+      border-radius: 3px;
+      padding: 5px 4px;
+      writing-mode: vertical-rl;
+      letter-spacing: 2px;
+      background: rgba(255, 253, 248, .5);
+    }
+    .art-cap {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 8px;
+      font-size: 12.5px;
       color: var(--muted);
-      background: rgba(255, 253, 248, .45);
-      border: 1px dashed var(--line);
-      border-radius: 16px;
     }
-    .rec h3 { font-size: 14.5px; color: var(--ink); margin-bottom: 4px; }
+    .art-cap strong { color: var(--ink); font-size: 13px; font-weight: 600; }
+    .art-hint { font-size: 12.5px; color: var(--muted); margin-top: 10px; }
+
+    /* ——— 做这个网站用的工具（V4.2）：真在用、能点开的东西 ——— */
+    .tool-list { list-style: none; display: grid; gap: 10px; }
+    .tool {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 12px 14px;
+      background: rgba(255, 253, 248, .86);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+    .tool-name { font-size: 14px; font-weight: 600; }
+    .tool-name a { color: var(--ink); }
+    .tool-name a:hover { color: var(--accent); }
+    .tool-what { font-size: 13px; color: var(--muted); flex: 1 1 200px; }
 
     /* ================= Vibe Coding 日志 ================= */
     .log-list { list-style: none; }
@@ -776,9 +964,15 @@
 
       /* 导航项变多，允许横向滑动 */
       nav.top .nav-inner { gap: 10px; }
-      nav.top .brand { font-size: 16px; }
+      /* 品牌不换行、不被压缩：否则「徐子涵.」会被挤成两行 */
+      nav.top .brand { font-size: 16px; flex: 0 0 auto; white-space: nowrap; }
       nav.top ul {
         gap: 12px;
+        /* V4.2：导航加到 8 项。flex 子项默认 min-width:auto，不肯缩到内容以下，
+           整页会被顶出一条横向滚动条（手机上标题和卡片都会跟着被裁）。
+           min-width:0 + flex:1 让它老实待在容器里，溢出交给 overflow-x 横滑。 */
+        flex: 1 1 auto;
+        min-width: 0;
         overflow-x: auto;
         white-space: nowrap;
         scrollbar-width: none;
@@ -814,8 +1008,11 @@
       .modal-head { padding: 16px 18px 12px; }
       .modal-body { padding: 16px 18px 20px; }
 
-      /* 分享：其他推荐（V4 顺手删掉了手机端残留的播放器样式） */
-      .rec-grid { grid-template-columns: 1fr; }
+      /* 分享：绘画展在窄屏单列排，画框别挤成两条细缝 */
+      .art-grid { grid-template-columns: 1fr; }
+
+      /* 首屏印章在窄屏会和标题抢地方，直接收起 —— 手机端优先保证标题完整 */
+      .hero-seal { display: none; }
 
       /* 反馈：右下角入口缩小一点，并避开 iPhone 底部手势条（V4） */
       .fb-fab {
@@ -852,6 +1049,7 @@
         <li><a href="#about">关于</a></li>
         <li><a href="#interests">兴趣爱好</a></li>
         <li><a href="#experience">个人经历</a></li>
+        <li><a href="#projects">项目</a></li>
         <li><a href="#contact">联系</a></li>
         <li><a href="#share">分享</a></li>
         <li><a href="#twin" id="navTwin">数字分身</a></li>
@@ -863,12 +1061,14 @@
   <div class="wrap">
     <!-- ================= Hero / 我是谁 ================= -->
     <header class="hero" id="about">
+      <div class="hero-seal" aria-hidden="true">徐</div>
+      <div class="hero-kicker">Computer Science · Shenzhen</div>
       <h1>你好，我是徐子涵</h1>
       <div class="role">学生</div>
       <!-- V4：首屏补一句自我介绍。样式 `.hero p.tagline` 从 V1 就写好了，一直没被用上，
            所以以前首屏只有名字和三个标签，访客 5 秒内看不出这个人在做什么。
            内容只写页面上真有的东西：大一、专业方向、最近在做的事。 -->
-      <p class="tagline">大一 · 计算机科学与技术。最近在学编程和软件开发，练手的方式就是把这个主页从一个文件慢慢改到现在。</p>
+      <p class="tagline">大一 · 计算机科学与技术。最近在学编程和软件开发，练手的方式就是把这个主页从一个文件慢慢改到现在。平时打乒乓球、弹中阮，也画国画。</p>
       <div class="meta">
         <span class="chip">男 · 18 岁</span>
         <span class="chip">现居深圳</span>
@@ -877,23 +1077,69 @@
     </header>
 
     <!-- ================= 兴趣爱好 ================= -->
+    <!-- V4.2：从两张「一句话卡」扩成三张有图标、有正文、有标签的卡（新增国画）。
+         图标是自绘 SVG 线稿 —— 不引外部图标库，也不会有版权和加载问题。 -->
     <section id="interests">
-      <h2 class="sec">兴趣爱好</h2>
+      <h2 class="sec">兴趣爱好 <span class="sec-en">Interests</span></h2>
       <div class="interest-grid">
         <div class="interest">
+          <div class="interest-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="10.4" cy="10.4" r="5.6"></circle>
+              <path d="M14.6 14.6L20 20"></path>
+              <circle cx="4" cy="4.4" r="1.7"></circle>
+            </svg>
+          </div>
           <h3>打乒乓球</h3>
-          <p>既能活动身体，也考验反应与专注，是我常用来放松的运动。</p>
+          <p>下课或者周末会去打一会儿。喜欢它够快 —— 球一过来，脑子里就只剩这一件事，比躺着更能歇过来。</p>
+          <div class="interest-tags">
+            <span class="interest-tag">课后常去</span>
+            <span class="interest-tag">练反应</span>
+          </div>
         </div>
+
         <div class="interest">
+          <div class="interest-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9.5" cy="14.5" r="6.2"></circle>
+              <path d="M12.4 9.9L17.5 4"></path>
+              <path d="M9.5 11.5v6"></path>
+              <path d="M7 12.6h5"></path>
+            </svg>
+          </div>
           <h3>弹中阮</h3>
-          <p>学弹这项中国传统弹拨乐器，享受音乐带来的安静与节奏。</p>
+          <p>学的是中阮，中国传统弹拨乐器。声音不抢，圆、钝、有余音；练琴不能急，一个音一个音往下按。</p>
+          <div class="interest-tags">
+            <span class="interest-tag">中国传统弹拨</span>
+            <span class="interest-tag">慢下来</span>
+          </div>
+        </div>
+
+        <div class="interest">
+          <div class="interest-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19c2.6-5.4 4.4-8.1 6.2-8.1 1.6 0 2.8 2.1 4.4 4.6 1 1.6 1.9 2.4 3.4 3.5"></path>
+              <path d="M4 19h16"></path>
+              <path d="M16.8 3.2l-2.6 6.4"></path>
+            </svg>
+          </div>
+          <h3>画国画</h3>
+          <p>喜欢水墨在纸上晕开的感觉：落笔不能改，所以会先想清楚再动手。画得还不多，但每次摊开纸，节奏就慢下来了。</p>
+          <div class="interest-tags">
+            <span class="interest-tag">水墨</span>
+            <span class="interest-tag">刚开始</span>
+          </div>
+          <button type="button" class="interest-link" id="openArt">看我的画 →</button>
         </div>
       </div>
     </section>
 
     <!-- ================= 个人经历 ================= -->
     <section id="experience">
-      <h2 class="sec">个人经历</h2>
+      <h2 class="sec">个人经历 <span class="sec-en">Experience</span></h2>
       <div class="card">
         <div class="timeline">
           <div class="tl-item">
@@ -907,9 +1153,58 @@
       </div>
     </section>
 
+    <!-- ================= 项目作品（V4.2 新增） ================= -->
+    <!-- 只写页面上真能点开、真跑着的东西：主页本身、数字分身、反馈系统。
+         不挂「即将上线」的空卡 —— 那是上一版刚删掉的那类占位。 -->
+    <section id="projects">
+      <h2 class="sec">项目作品 <span class="sec-en">Projects</span></h2>
+      <p class="sec-note">都是围着这个主页做的，算不上大项目，但每一件都上线了。</p>
+      <div class="projects">
+        <article class="proj">
+          <span class="proj-no">01</span>
+          <h3>这个个人主页</h3>
+          <p>一个 HTML 文件，从 V1 改到 V4：加过弹窗、换过配色、把视频背景退回成静态图，最后把反馈接进了数据库。</p>
+          <div class="proj-tags">
+            <span class="proj-tag">HTML / CSS / JS</span>
+            <span class="proj-tag">GitHub Pages</span>
+          </div>
+          <div class="proj-links">
+            <a href="https://theinbetween07-byte.github.io/personal-website/" target="_blank" rel="noopener">线上 ↗</a>
+            <a href="https://github.com/theinbetween07-byte/personal-website" target="_blank" rel="noopener">源码 ↗</a>
+          </div>
+        </article>
+
+        <article class="proj">
+          <span class="proj-no">02</span>
+          <h3>数字分身</h3>
+          <p>先是十几条关键词规则，后来接了自己的后端：先本地拦掉隐私问题，再交给模型现场回答，模型挂了自动退回规则版。</p>
+          <div class="proj-tags">
+            <span class="proj-tag">Node.js</span>
+            <span class="proj-tag">阿里云函数计算</span>
+          </div>
+          <div class="proj-links">
+            <a href="#twin">去问它一句 →</a>
+          </div>
+        </article>
+
+        <article class="proj">
+          <span class="proj-no">03</span>
+          <h3>反馈系统</h3>
+          <p>右下角那个按钮背后。用 PostgREST 直连 Supabase，行级权限只允许写入 —— 表里有数据，访客一条也读不到。</p>
+          <div class="proj-tags">
+            <span class="proj-tag">Supabase</span>
+            <span class="proj-tag">PostgreSQL</span>
+          </div>
+          <div class="proj-links">
+            <a href="#log">看它是怎么做的 →</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
     <!-- ================= 为什么做这个主页 ================= -->
     <section id="about-site">
-      <h2 class="sec">为什么做这个主页</h2>
+      <h2 class="sec">为什么做这个主页 <span class="sec-en">Why</span></h2>
       <div class="card">
         <p style="color:var(--muted);">
           为进行对“vibe coding”课程内容的学习，我正在创建并完善一个个人主页。我将通过利用AI工具辅助该主页从v1改进至v4，丰富其功能，打磨其品质，从而训练AI运用能力。我将通过将个人主页作为真实产品进行迭代的实践，助力形成可复用的Vibe Coding创作习惯。
@@ -919,7 +1214,7 @@
 
     <!-- ================= 联系 ================= -->
     <section id="contact">
-      <h2 class="sec">联系我</h2>
+      <h2 class="sec">联系我 <span class="sec-en">Contact</span></h2>
       <div class="card">
         <p style="margin-bottom:12px;">
           想聊聊课程、学习方向，或者对这个主页有什么想法，都可以找我。页面右下角也有一个反馈入口。
@@ -932,19 +1227,19 @@
 
     <!-- ================= 分享（点开 → 弹窗展示，不堆在主页上） ================= -->
     <section id="share">
-      <h2 class="sec">分享</h2>
+      <h2 class="sec">分享 <span class="sec-en">Share</span></h2>
 
       <div class="card share-entry" id="shareEntry" role="button" tabindex="0"
            aria-haspopup="dialog" aria-controls="shareModal">
         <div class="share-entry-main">
           <div class="share-entry-title">我推荐的一些东西</div>
-          <div class="share-entry-desc">音乐、书、影视、网站工具、播客 —— 点开看完整清单，音乐能直接在里面听。</div>
+          <!-- V4.2：标签只列弹窗里真有的三样。以前挂着书 / 影视 / 播客却只有音乐，
+               点进去的人第一反应就是「坏了」—— 标签必须对得上内容。 -->
+          <div class="share-entry-desc">一首歌、几张画，还有做这个网站真正在用的工具。点标签可以直接跳过去。</div>
           <div class="share-chips">
-            <span class="share-chip">音乐</span>
-            <span class="share-chip">书</span>
-            <span class="share-chip">影视</span>
-            <span class="share-chip">网站 / 工具</span>
-            <span class="share-chip">播客</span>
+            <button type="button" class="share-chip" data-jump="music">音乐</button>
+            <button type="button" class="share-chip" data-jump="art">绘画</button>
+            <button type="button" class="share-chip" data-jump="tools">工具</button>
           </div>
         </div>
         <button type="button" class="share-open" id="openShare">打开分享</button>
@@ -954,7 +1249,8 @@
 
     <!-- ================= 数字分身聊天区 ================= -->
     <section id="twin">
-      <h2 class="sec" id="twinTitle">数字分身</h2>
+      <!-- 标题拆成两个 span：中英文切换时只替换文字，不把英文副标一起冲掉 -->
+      <h2 class="sec"><span id="twinTitleText">数字分身</span> <span class="sec-en" id="twinTitleEn">Twin</span></h2>
 
       <div class="twin-card">
         <div class="twin-top">
@@ -984,7 +1280,7 @@
 
     <!-- ================= Vibe Coding 日志 ================= -->
     <section id="log">
-      <h2 class="sec">Vibe Coding 日志</h2>
+      <h2 class="sec">Vibe Coding 日志 <span class="sec-en">Log</span></h2>
       <div class="card">
         <ul class="log-list" id="logList"></ul>
       </div>
@@ -995,7 +1291,7 @@
       <div class="links">
         <span>theinbetween07@gmail.com</span>
       </div>
-      <div>© <span id="year"></span> 徐子涵 · V4</div>
+      <div>© <span id="year"></span> 徐子涵 · V4.2</div>
     </footer>
 
   </div>
@@ -1012,7 +1308,7 @@
 
         <div class="modal-body">
           <!-- ——— 推荐音乐：在线收听（网易云官方外链播放器） ——— -->
-          <div class="share-block">
+          <div class="share-block" id="share-music">
             <h3 class="share-sub">音乐推荐</h3>
 
             <!-- ——— 在线收听：网易云官方外链播放器 ———
@@ -1034,12 +1330,38 @@
             </div>
           </div>
 
-          <!-- ——— 其他推荐：V4 起先收起来 ———
-               这里原来放着「书 / 影视 / 网站工具 / 播客」四张卡，正文全是「待补充」+ 虚线框。
-               访客（尤其第一次点开分享弹窗的人）第一反应是「这网站还没做完吧」。
-               判断和 V2.7 删掉「＋ 新的兴趣（待补充）」是同一条：占位越少，越不像半成品。
-               想填内容时：给每类写一条真推荐（名字 + 一句话理由 + 链接），把 CSS 里的
-               `.rec-grid` / `.rec` 用回来，并把 `.rec` 的 `border: 1px dashed` 改成实线。 -->
+          <!-- ——— 绘画展（V4.2）———
+               作品图放在 assets/art/ 下，文件名对应 JS 里 ARTWORKS 数组的 src。
+               图还没到的时候，画框显示「纸 + 朱印」的留白版式，不放「待补充」字样。 -->
+          <div class="share-block" id="share-art">
+            <h3 class="share-sub">我的画 · 国画习作</h3>
+            <p class="art-hint">开始画之后，最喜欢的是「落笔不能改」这件事 —— 想清楚了再下笔。</p>
+            <div class="art-grid" id="artGrid"></div>
+          </div>
+
+          <!-- ——— 做这个网站用的工具（V4.2）———
+               只列真在用、且在代码里找得到痕迹的四个，每个都能点去官网。 -->
+          <div class="share-block" id="share-tools">
+            <h3 class="share-sub">做这个网站用的工具</h3>
+            <ul class="tool-list">
+              <li class="tool">
+                <span class="tool-name"><a href="https://code.visualstudio.com/" target="_blank" rel="noopener">VS Code ↗</a></span>
+                <span class="tool-what">写代码。这个主页的每一次改动都在里面完成。</span>
+              </li>
+              <li class="tool">
+                <span class="tool-name"><a href="https://pages.github.com/" target="_blank" rel="noopener">GitHub Pages ↗</a></span>
+                <span class="tool-what">上线。推一次仓库，一分钟后就有一个谁都能打开的网址。</span>
+              </li>
+              <li class="tool">
+                <span class="tool-name"><a href="https://supabase.com/" target="_blank" rel="noopener">Supabase ↗</a></span>
+                <span class="tool-what">存反馈。行级权限管着读和写，不用自己从头写后端。</span>
+              </li>
+              <li class="tool">
+                <span class="tool-name"><a href="https://www.aliyun.com/product/fc" target="_blank" rel="noopener">阿里云函数计算 ↗</a></span>
+                <span class="tool-what">跑数字分身的后端。有人提问才运行，平时不占资源。</span>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
@@ -1138,7 +1460,7 @@
         major: '计算机科学与技术',
         recent: '上课；在做这个还很潦草的个人主页',
         email: 'theinbetween07@gmail.com',
-        interests: ['打乒乓球', '弹中阮']
+        interests: ['打乒乓球', '弹中阮', '画国画']
       },
       // ——— 要模仿的聊天风格 ———
       style: '简短、口语、直接，不客套、不啰嗦；不用 emoji；不知道就说不知道，不瞎编。',
@@ -1210,9 +1532,9 @@
           zh: '为了学 vibe coding。拿自己的主页当真实产品迭代，顺便练怎么用 AI 干活。',
           en: 'Learning vibe coding. The homepage is the real product I iterate on, to practice working with AI.' },
 
-        { k: ['爱好', '兴趣', '喜欢', '乒乓球', '中阮', '阮', '乐器', '音乐', '运动', 'hobby', 'hobbies', 'interest', 'ping pong', 'table tennis', 'music', 'instrument'],
-          zh: '打乒乓球、弹中阮，平时会听歌。',
-          en: 'Table tennis and the ruan (a Chinese plucked instrument). One loud, one quiet.' },
+        { k: ['爱好', '兴趣', '喜欢', '乒乓球', '中阮', '阮', '乐器', '国画', '画画', '绘画', '音乐', '运动', 'hobby', 'hobbies', 'interest', 'ping pong', 'table tennis', 'chinese painting', 'music', 'instrument'],
+          zh: '打乒乓球、弹中阮，最近在画国画，平时会听歌。',
+          en: 'Table tennis, the ruan (a Chinese plucked instrument), and lately Chinese ink painting.' },
 
         { k: ['联系', '邮箱', '邮件', '怎么找你', 'contact', 'email', 'reach you'],
           zh: '邮箱 theinbetween07@gmail.com。',
@@ -1297,7 +1619,8 @@
       form: document.getElementById('chatForm'),
       input: document.getElementById('chatInput'),
       sendBtn: document.getElementById('chatSend'),
-      title: document.getElementById('twinTitle'),
+      title: document.getElementById('twinTitleText'),
+      titleEn: document.getElementById('twinTitleEn'),
       avatar: document.getElementById('twinAvatar'),
       who: document.getElementById('twinWho'),
       status: document.getElementById('twinStatus'),
@@ -1490,7 +1813,8 @@
       document.querySelectorAll('.lang-btn').forEach((b) => {
         b.classList.toggle('is-on', b.dataset.lang === lang);
       });
-      document.getElementById('twinTitle').textContent = t('title');
+      chatUI.title.textContent = t('title');
+      chatUI.titleEn.textContent = lang === 'zh' ? 'Twin' : '';
       chatUI.avatar.textContent = t('avatar');
       chatUI.who.textContent = t('who');
       chatUI.navTwin.textContent = t('navTwin');
@@ -1636,6 +1960,7 @@
     // 入口卡片整块可点
     shareEntry.addEventListener('click', openShare);
     shareEntry.addEventListener('keydown', (e) => {
+      if (e.target !== shareEntry) return; // 卡片里还有可点的标签，别替它们拦键盘
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openShare(); }
     });
     openShareBtn.addEventListener('click', (e) => { e.stopPropagation(); openShare(); });
@@ -1645,6 +1970,90 @@
     shareWrap.addEventListener('click', (e) => {
       if (e.target === shareWrap) closeShare();
     });
+
+    /* =====================================================================
+       分享目录跳转（V4.2）
+       ---------------------------------------------------------------------
+       入口卡上的「音乐 / 绘画 / 工具」不是装饰，是三个可以直接点的目录。
+       点一下 = 打开弹窗 + 滚到对应那一节；滑到最上面再往上滚仍是弹窗标题。
+       ===================================================================== */
+    // 用 offsetTop 而不是 getBoundingClientRect：弹窗刚打开时面板还在跑入场动画
+    // （scale/translate），用 rect 相减会量出被缩放的误差；offsetTop 不受 transform 影响。
+    // 也不用 scrollIntoView：它依赖平滑滚动动画，某些环境下（含无头浏览器）不会真的动。
+    function revealShareSection(name) {
+      const body = document.querySelector('#shareModal .modal-body');
+      const target = document.getElementById('share-' + name);
+      if (!body || !target) return;
+      body.scrollTop = Math.max(0, target.offsetTop - 12);
+    }
+
+    document.querySelectorAll('.share-chip[data-jump]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation(); // 别让外层卡片再处理一次
+        openShare();
+        revealShareSection(btn.dataset.jump);
+      });
+    });
+
+    // 兴趣爱好里「看我的画」→ 打开分享弹窗并停在绘画展
+    const openArtBtn = document.getElementById('openArt');
+    if (openArtBtn) {
+      openArtBtn.addEventListener('click', () => {
+        openShare();
+        revealShareSection('art');
+      });
+    }
+
+    /* =====================================================================
+       绘画展（V4.2）
+       ---------------------------------------------------------------------
+       作品图放在 assets/art/ 下。放进文件后，改下面数组里的 src / title / note 即可。
+       图还没到位时 img 会自己移除，露出底下的「宣纸 + 朱印」画框 ——
+       不写「待补充」，空着也像一面还没挂画的展墙。
+       ===================================================================== */
+    const ARTWORKS = [
+      { src: 'assets/art/art-1.jpg', title: '习作 · 一', note: '纸本 · 水墨' },
+      { src: 'assets/art/art-2.jpg', title: '习作 · 二', note: '纸本 · 水墨' }
+    ];
+
+    function renderArt() {
+      const grid = document.getElementById('artGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      ARTWORKS.forEach((item) => {
+        const fig = document.createElement('figure');
+        fig.className = 'art';
+
+        const frame = document.createElement('div');
+        frame.className = 'art-frame';
+
+        // 无图状态：一枚竖排朱印，压在宣纸留白上
+        const seal = document.createElement('span');
+        seal.className = 'art-seal';
+        seal.textContent = '子涵';
+        frame.appendChild(seal);
+
+        const img = document.createElement('img');
+        img.src = item.src;
+        img.alt = item.title;
+        img.loading = 'lazy';
+        img.addEventListener('error', () => img.remove()); // 图没到就撤掉，别留破图标
+        frame.appendChild(img);
+
+        const cap = document.createElement('figcaption');
+        cap.className = 'art-cap';
+        const name = document.createElement('strong');
+        name.textContent = item.title;
+        const note = document.createElement('span');
+        note.textContent = item.note;
+        cap.append(name, note);
+
+        fig.append(frame, cap);
+        grid.appendChild(fig);
+      });
+    }
+
+    renderArt();
 
     /* =====================================================================
        Vibe Coding 日志
@@ -1658,6 +2067,11 @@
        gain 里可以用 <strong> 强调关键词。
        ===================================================================== */
     const VIBE_LOG = [
+      {
+        ver: 'V4.2', date: '2026-11-05',
+        title: '把「少」补上：项目区、国画、绘画展和真能点的目录',
+        gain: '上一版为了「不像半成品」删掉了一堆占位，结果被评价<strong>「模块齐全，但内容偏薄、设计元素少」</strong> —— 这一版专门补「少」。① 新增<strong>项目作品区</strong>：不写「即将上线」，只放三件真在跑的东西（这个主页、数字分身、反馈系统），每件带技术标签和能点开的入口。② 兴趣爱好从两张一句话卡扩成<strong>三张带图标的卡</strong>，并加上国画；图标是自绘 SVG 线稿，不引图标库，也没有版权问题。③ 分享弹窗补上<strong>绘画展</strong>（宣纸画框 + 朱印，图放进来就显示）和<strong>做这个网站用的工具</strong>（四个真在用、能点去官网的工具）。④ 顺手修掉一个<strong>信任问题</strong>：入口卡写着书 / 影视 / 播客，点进去却只有音乐，有人以为坏了；现在标签只剩<strong>弹窗里真有的三样</strong>，点标签还能直接跳到对应那一节。⑤ 设计上加了<strong>朱印、英文副标、标题渐隐细线、卡片悬停</strong>，没加装饰图，靠排版分层。'
+      },
       {
         ver: 'V4.1', date: '2026-11-03',
         title: '期末扩展：数字分身从「规则匹配」升级成「真的会回答」',
@@ -1785,7 +2199,7 @@
     };
 
     // 提交时自动附带，访客不用填
-    const SITE_VERSION = 'V4';
+    const SITE_VERSION = 'V4.2';
 
     const FB_MSG_MAX = 500;
     const FB_RELATIONS = ['同学', '老师', '家人', '朋友', '同事', '其他', '不便透露'];

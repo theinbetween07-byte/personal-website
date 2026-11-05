@@ -46,7 +46,7 @@ function goodFetch() { return { ok: true, status: 201, text: function () { retur
   chk('第一项是「请选择」', fb.relation.children[0].textContent === '请选择', fb.relation.children[0].textContent);
   chk('关系含「不便透露」', FB_RELATIONS.indexOf('不便透露') > -1);
   chk('设备按桌面 UA 预选「电脑」', fb.device.value === '电脑', fb.device.value);
-  chk('SITE_VERSION = V4', SITE_VERSION === 'V4', SITE_VERSION);
+  chk('SITE_VERSION = V4 系列', SITE_VERSION.indexOf('V4') === 0, SITE_VERSION);
   chk('已填好 Supabase 配置', fbConfigured() === true, SUPABASE.url);
 
   // ---------- 未配置：不要假装成功 ----------
@@ -107,7 +107,7 @@ function goodFetch() { return { ok: true, status: 201, text: function () { retur
   chk('带上 apikey', c.opt.headers && c.opt.headers.apikey === SUPABASE.publishableKey);
   chk('带上 Authorization Bearer', c.opt.headers && c.opt.headers.Authorization === 'Bearer ' + SUPABASE.publishableKey);
   var row = JSON.parse(c.opt.body);
-  chk('自动附带 version = V4', row.version === 'V4', row.version);
+  chk('自动附带 version = V4 系列', row.version.indexOf('V4') === 0, row.version);
   chk('昵称去掉首尾空格', row.name === '小王', row.name);
   chk('内容去掉首尾空格', row.message === '手机上导航要横向滑，一开始没发现', row.message);
   chk('关系和设备随表单一起提交', row.relation === '同学' && row.device === '手机');

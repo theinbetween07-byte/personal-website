@@ -8,7 +8,7 @@ A personal website — one HTML file, no framework, no build step.
 ## 改完先跑测试
 
 ```bash
-node tools/verify-page.js         # 结构 / 导航 / 锚点 / 配色   90 条
+node tools/verify-page.js         # 结构 / 导航 / 锚点 / 配色  107 条
 node tools/run-share-tests.js     # 分享弹窗与焦点管理           32 条
 node tools/run-feedback-tests.js  # 反馈表单                     67 条
 node tools/run-twin-tests.js      # 数字分身（规则版兜底）        26 条

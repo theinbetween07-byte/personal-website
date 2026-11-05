@@ -1310,7 +1310,7 @@
     // 状态条 + 说明文字：没接后端 / 后端挂了 → 说「规则版」；接上了 → 说「模型版」。
     // 不为了好看冒充「AI 在线」—— 访客看到的版本必须和真实运行方式一致。
     function refreshTwinStatus() {
-      const live = !!TWIN.endpoint && !twinDowngraded;
+      const live = !!TWIN.endpoint && !twinLastFailed;
       chatUI.status.textContent = t(live ? 'statusModel' : 'status');
       chatUI.note.textContent = t(live ? 'noteModel' : 'note');
     }
@@ -1373,8 +1373,10 @@
       return false;
     }
 
-    // 模型版调不通（没部署 / 断网 / 超时 / 后端挂了）时置 true，状态条改回「规则版」
-    let twinDowngraded = false;
+    // 上一次请求模型没成功？置 true，状态条改回「规则版」。
+    // 只反映「最近一次」的真实结果：下一句还会重新试后端，成功就自动翻回「模型版」，
+    // 不像以前那样一旦失败就整场对话都锁死在规则版。
+    let twinLastFailed = false;
 
     // ★ 数字分身唯一入口，保持返回 Promise<string>
     async function askTwin(text) {
@@ -1399,13 +1401,18 @@
           if (res.ok) {
             const data = await res.json();
             if (data && typeof data.reply === 'string' && data.reply.trim()) {
-              return data.reply.trim();   // 成功：用模型的回答
+              // 成功：状态条翻回「模型版」（后端恢复后不用刷新页面）
+              if (twinLastFailed) {
+                twinLastFailed = false;
+                refreshTwinStatus();
+              }
+              return data.reply.trim();
             }
           }
         } catch (_) { /* 断网 / 超时 / CORS → 落到下面降级 */ }
 
-        // 模型端失败：标记降级，让访客知道现在看到的是规则版
-        twinDowngraded = true;
+        // 这一次没成功：状态条改回「规则版」，让访客知道现在看到的是规则版
+        twinLastFailed = true;
         refreshTwinStatus();
       }
 

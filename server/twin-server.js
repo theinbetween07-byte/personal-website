@@ -81,8 +81,9 @@ const MAX_TOKENS = 400;
 const TEMPERATURE = 0.6;
 const MAX_HISTORY = 6;
 const MAX_HISTORY_CONTENT = 600;
+const MODEL_ATTEMPTS = 2; // 上游失败最多试 2 次（MODE 见 callModel）
 const MAX_MESSAGE = 2000;
-const RATE_LIMIT = 30;
+const RATE_LIMIT = Math.max(1, Number(process.env.TWIN_RATE_LIMIT || 30) || 30);
 const RATE_WINDOW_MS = 60_000;
 const MAX_BODY_BYTES = 100 * 1024;
 
@@ -157,7 +158,7 @@ function buildSystemPrompt(lang) {
   L.push(bullets(k.identity));
   L.push('');
 
-  L.push('【研究与教学】');
+  L.push('【我在做什么】');
   L.push(bullets(k.work));
   L.push('');
 
@@ -176,6 +177,19 @@ function buildSystemPrompt(lang) {
   if (p.voice) L.push(p.voice);
   if (Array.isArray(p.rules) && p.rules.length) L.push(numbered(p.rules));
   L.push('');
+
+  // 语气示例：给「怎么答」一个锚点，比只写规则更能稳住风格（照感觉说，不许照抄）
+  const examples = (Array.isArray(p.examples) ? p.examples : [])
+    .map((e) => e && e[lang])
+    .filter((e) => e && e.q && e.a);
+  if (examples.length) {
+    L.push('【语气示例（照这个感觉说，不要照抄答案）】');
+    examples.forEach((e) => {
+      L.push('访客：' + e.q);
+      L.push('你：' + e.a);
+    });
+    L.push('');
+  }
 
   L.push('【边界 —— 一律不展开，礼貌拒答，不解释为什么不答】');
   L.push(bullets(b.topics));
@@ -263,7 +277,10 @@ if (typeof sweeper.unref === 'function') sweeper.unref();
 // ---------------------------------------------------------------------------
 // 调模型
 // ---------------------------------------------------------------------------
-async function callModel({ system, user, history, lang }) {
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// 组消息：system + 最近几轮 + 本轮提问（同一句不重复发）
+function buildMessages(system, user, history) {
   const messages = [{ role: 'system', content: system }];
 
   const trimmed = (Array.isArray(history) ? history : [])
@@ -284,7 +301,11 @@ async function callModel({ system, user, history, lang }) {
   }
   messages.push(...trimmed);
   messages.push({ role: 'user', content: user });
+  return messages;
+}
 
+// 单次请求。retryable=false 的失败不再重试（4xx = key/额度问题，重试没用；超时也重试只会让访客多等 20 秒）
+async function callModelOnce(messages) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
@@ -310,7 +331,8 @@ async function callModel({ system, user, history, lang }) {
       const text = await res.text().catch(() => '');
       const safe = text.replace(/sk-[A-Za-z0-9]{8,}/g, 'sk-***').slice(0, 300);
       console.error('[twin] upstream ' + res.status + ': ' + safe);
-      return { ok: false, code: 502 };
+      // 5xx 重试一次；401/402/429 这类再试也一样，直接放弃
+      return { ok: false, code: 502, retryable: res.status >= 500 };
     }
 
     const data = await res.json().catch(() => null);
@@ -323,19 +345,33 @@ async function callModel({ system, user, history, lang }) {
 
     if (typeof reply !== 'string' || !reply.trim()) {
       console.error('[twin] upstream returned empty content');
-      return { ok: false, code: 502 };
+      return { ok: false, code: 502, retryable: true };
     }
     return { ok: true, reply: reply.trim() };
   } catch (err) {
     if (err && err.name === 'AbortError') {
       console.error('[twin] upstream timeout after ' + TIMEOUT_MS + 'ms');
-      return { ok: false, code: 504 };
+      // 已经等了 20 秒，重试只会让访客再等一轮
+      return { ok: false, code: 504, retryable: false };
     }
     console.error('[twin] fetch failed: ' + ((err && err.message) || err));
-    return { ok: false, code: 502 };
+    return { ok: false, code: 502, retryable: true };
   } finally {
     clearTimeout(timer);
   }
+}
+
+// 对上游偶发失败重试一次：网络抖动 / 5xx / 空回复都值得再试，4xx 和超时不重试
+async function callModel({ system, user, history }) {
+  const messages = buildMessages(system, user, history);
+  let last = { ok: false, code: 502 };
+  for (let attempt = 1; attempt <= MODEL_ATTEMPTS; attempt += 1) {
+    last = await callModelOnce(messages);
+    if (last.ok) return last;
+    if (last.retryable === false) return last;
+    if (attempt < MODEL_ATTEMPTS) await sleep(250);
+  }
+  return { ok: false, code: last.code || 502 };
 }
 
 // ---------------------------------------------------------------------------

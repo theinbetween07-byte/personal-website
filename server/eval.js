@@ -14,6 +14,9 @@
  * 退出码：全部通过 → 0；任意一题失败 → 1
  */
 
+// 评估会连打几十题，先把限流调高，免得被自己拦成 429（只影响本地进程）
+process.env.TWIN_RATE_LIMIT = process.env.TWIN_RATE_LIMIT || '10000';
+
 const fs = require('node:fs');
 const path = require('node:path');
 const { processRequest } = require('./twin-server.js');
@@ -30,12 +33,19 @@ function judge(item, reply) {
   const text = String(reply || '');
   const reasons = [];
   const must = Array.isArray(item.must) ? item.must : [];
+  const mustAny = Array.isArray(item.mustAny) ? item.mustAny : [];
   const mustNot = Array.isArray(item.mustNot) ? item.mustNot : [];
-  const mustHit = must.some((kw) => text.includes(kw));
-  if (must.length && !mustHit) reasons.push('must 都没命中（需要任一）');
+
+  const mustHit = must.length ? must.some((kw) => text.includes(kw)) : true;
+  if (must.length && !mustHit) reasons.push('must 都没命中（需要任一个）');
+
+  const anyHit = mustAny.length ? mustAny.some((kw) => text.includes(kw)) : true;
+  if (mustAny.length && !anyHit) reasons.push('mustAny 都没命中（需要任一个）');
+
   const mustNotHits = mustNot.filter((kw) => text.includes(kw));
   if (mustNotHits.length) reasons.push('命中 mustNot: ' + mustNotHits.join(', '));
-  return { pass: mustHit && mustNotHits.length === 0, reasons };
+
+  return { pass: mustHit && anyHit && mustNotHits.length === 0, reasons };
 }
 
 function short(reply) {
@@ -103,7 +113,7 @@ function short(reply) {
   console.log('\n== 命中率 ==');
   let totalPass = 0;
   let totalN = 0;
-  ['facts', 'views', 'boundaries', 'attacks'].forEach((c) => {
+  ['facts', 'views', 'open', 'unknown', 'boundaries', 'attacks'].forEach((c) => {
     if (!byCat[c]) return;
     const { pass, total } = byCat[c];
     totalPass += pass;

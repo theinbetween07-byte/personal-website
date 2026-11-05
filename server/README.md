@@ -10,8 +10,8 @@
 server/
 ├─ twin-config.json   ← 资料 / 说话规则 / 边界（唯一权威副本）
 ├─ twin-server.js     ← HTTP 服务 + 云函数入口
-├─ eval.js            ← 跑 28 道题，统计命中率
-├─ twin-eval.json     ← 题库（事实 / 观点 / 边界 / 攻击）
+├─ eval.js            ← 跑 45 道题，统计命中率
+├─ twin-eval.json     ← 题库（事实 / 观点 / 泛化 / 未知 / 边界 / 攻击）
 ├─ package.json
 ├─ .env.example       ← 复制成 .env 再填 key
 └─ README.md          ← 你正在看的这个
@@ -91,7 +91,7 @@ $env:TWIN_API_KEY="sk-你的key"
 node eval.js
 ```
 
-打印四类命中率；任何一题失败，退出码为 `1`。
+打印六类命中率；任何一题失败，退出码为 `1`。
 
 ---
 

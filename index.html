@@ -748,6 +748,11 @@
       height: 100%;
       object-fit: cover;
     }
+    /* 横幅作品（手卷式）：占满一整行，比例由图片自己定（--ar 在 JS 里按原图算），
+       所以画心不会被竖框裁掉。没有 --ar 时退回 16:9。
+       注意：grid 的子项是 figure.art，不是画框本身，跨列要加在图外面那层。 */
+    .art.is-wide { grid-column: 1 / -1; }
+    .art-frame.is-wide { aspect-ratio: var(--ar, 16 / 9); }
     .art-seal {
       /* 落款印的位置：右下角，像画完在角落按下去的那一枚 */
       position: absolute;
@@ -1980,10 +1985,12 @@
     // 用 offsetTop 而不是 getBoundingClientRect：弹窗刚打开时面板还在跑入场动画
     // （scale/translate），用 rect 相减会量出被缩放的误差；offsetTop 不受 transform 影响。
     // 也不用 scrollIntoView：它依赖平滑滚动动画，某些环境下（含无头浏览器）不会真的动。
+    let lastJump = null; // 记住最近一次跳转的小节，图片 late-load 后要重算一次
     function revealShareSection(name) {
       const body = document.querySelector('#shareModal .modal-body');
       const target = document.getElementById('share-' + name);
       if (!body || !target) return;
+      lastJump = name;
       body.scrollTop = Math.max(0, target.offsetTop - 12);
     }
 
@@ -2012,8 +2019,8 @@
        不写「待补充」，空着也像一面还没挂画的展墙。
        ===================================================================== */
     const ARTWORKS = [
-      { src: 'assets/art/art-1.jpg', title: '习作 · 一', note: '纸本 · 水墨' },
-      { src: 'assets/art/art-2.jpg', title: '习作 · 二', note: '纸本 · 水墨' }
+      // wide: true = 横幅（手卷式），占满一行，比例按原图算，不裁画心
+      { src: 'assets/art/art-1.jpg', title: '大吉图', note: '纸本设色 · 己亥秋', wide: true }
     ];
 
     function renderArt() {
@@ -2022,10 +2029,10 @@
       grid.innerHTML = '';
       ARTWORKS.forEach((item) => {
         const fig = document.createElement('figure');
-        fig.className = 'art';
+        fig.className = item.wide ? 'art is-wide' : 'art';
 
         const frame = document.createElement('div');
-        frame.className = 'art-frame';
+        frame.className = item.wide ? 'art-frame is-wide' : 'art-frame';
 
         // 无图状态：一枚竖排朱印，压在宣纸留白上
         const seal = document.createElement('span');
@@ -2038,6 +2045,17 @@
         img.alt = item.title;
         img.loading = 'lazy';
         img.addEventListener('error', () => img.remove()); // 图没到就撤掉，别留破图标
+        // 横幅作品：按图片自己的长宽比撑开画框，免得被裁掉两边
+        if (item.wide) {
+          img.addEventListener('load', () => {
+            if (!img.naturalWidth || !img.naturalHeight) return;
+            frame.style.setProperty('--ar', img.naturalWidth + ' / ' + img.naturalHeight);
+            // 图加载完画框才会变成横幅，之前量好的偏移已经过期 → 重算一次
+            if (lastJump && document.getElementById('shareModal').classList.contains('is-open')) {
+              revealShareSection(lastJump);
+            }
+          });
+        }
         frame.appendChild(img);
 
         const cap = document.createElement('figcaption');
@@ -2070,7 +2088,7 @@
       {
         ver: 'V4.2', date: '2026-11-05',
         title: '把「少」补上：项目区、国画、绘画展和真能点的目录',
-        gain: '上一版为了「不像半成品」删掉了一堆占位，结果被评价<strong>「模块齐全，但内容偏薄、设计元素少」</strong> —— 这一版专门补「少」。① 新增<strong>项目作品区</strong>：不写「即将上线」，只放三件真在跑的东西（这个主页、数字分身、反馈系统），每件带技术标签和能点开的入口。② 兴趣爱好从两张一句话卡扩成<strong>三张带图标的卡</strong>，并加上国画；图标是自绘 SVG 线稿，不引图标库，也没有版权问题。③ 分享弹窗补上<strong>绘画展</strong>（宣纸画框 + 朱印，图放进来就显示）和<strong>做这个网站用的工具</strong>（四个真在用、能点去官网的工具）。④ 顺手修掉一个<strong>信任问题</strong>：入口卡写着书 / 影视 / 播客，点进去却只有音乐，有人以为坏了；现在标签只剩<strong>弹窗里真有的三样</strong>，点标签还能直接跳到对应那一节。⑤ 设计上加了<strong>朱印、英文副标、标题渐隐细线、卡片悬停</strong>，没加装饰图，靠排版分层。'
+        gain: '上一版为了「不像半成品」删掉了一堆占位，结果被评价<strong>「模块齐全，但内容偏薄、设计元素少」</strong> —— 这一版专门补「少」。① 新增<strong>项目作品区</strong>：不写「即将上线」，只放三件真在跑的东西（这个主页、数字分身、反馈系统），每件带技术标签和能点开的入口。② 兴趣爱好从两张一句话卡扩成<strong>三张带图标的卡</strong>，并加上国画；图标是自绘 SVG 线稿，不引图标库，也没有版权问题。③ 分享弹窗补上<strong>绘画展</strong>（宣纸画框 + 朱印，第一幅《大吉图》已经挂上 —— 它是横幅，就让画框按画自己的比例撑开，不为了「统一竖框」去裁画心）和<strong>做这个网站用的工具</strong>（四个真在用、能点去官网的工具）。④ 顺手修掉一个<strong>信任问题</strong>：入口卡写着书 / 影视 / 播客，点进去却只有音乐，有人以为坏了；现在标签只剩<strong>弹窗里真有的三样</strong>，点标签还能直接跳到对应那一节。⑤ 设计上加了<strong>朱印、英文副标、标题渐隐细线、卡片悬停</strong>，没加装饰图，靠排版分层。'
       },
       {
         ver: 'V4.1', date: '2026-11-03',

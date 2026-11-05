@@ -162,6 +162,13 @@ chk('画框是 3:4 竖幅（国画的比例）', html.includes('aspect-ratio: 3 
 chk('数字分身标题拆成可切换的 span（英文切换不冲掉副标）', html.includes('id="twinTitleText"') && js.includes('chatUI.titleEn.textContent'));
 chk('爱好规则覆盖国画，且没有单字「画」关键词（会误伤「计划」）', js.includes("'国画'") && !/'画',/.test(js));
 chk('滚动容器 .modal-body 是定位祖先（跳转才能用 offsetTop）', html.includes('.modal-body { position: relative;'));
+chk('横幅作品有 is-wide 版式（画心不被竖框裁掉）',
+  html.includes('.art-frame.is-wide') && js.includes("'art-frame is-wide'") && js.includes("setProperty('--ar'"));
+const artSrcs = [...js.matchAll(/src:\s*'(assets\/art\/[^']+)'/g)].map((m) => m[1]);
+chk('绘画展引用的图都在磁盘上（不留空框）',
+  artSrcs.length > 0 && artSrcs.every((p) => fs.existsSync(path.join(root, p))),
+  artSrcs.join(', '));
+
 const revealFn = (js.match(/function revealShareSection\([\s\S]*?\n    \}/) || [''])[0];
 chk('目录跳转按 offsetTop 算，不受入场动画 transform 影响',
   revealFn.includes('target.offsetTop - 12') && !revealFn.includes('getBoundingClientRect'));
